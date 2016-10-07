@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" href="img/voyccg.png">
+    <title>Tab Title</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.6/d3.min.js" integrity="sha256-5idA201uSwHAROtCops7codXJ0vja+6wbBrZdQ6ETQc=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+    <link href="css/jumbotron.css" rel="stylesheet">
+
+    <style>
+
+    </style>
+</head>
+
+<body>
+
+    <div id="preloader">
+        <div id="status">&nbsp;</div>
+    </div>
+
+    <nav class="navbar navbar-fixed-top navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="Index.html">Page Name</a>
+            <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#CollapsingNavbar" aria-controls="CollapsingNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                &#9776;
+            </button>
+
+            <div class="collapse navbar-toggleable-xs" id="CollapsingNavbar">
+
+                <div class="nav navbar-nav">
+                    <a class="nav-item nav-link" href="Index.html">Home <span class="sr-only">(current)</span></a>
+                    <a class="nav-item nav-link" href="About.html">About</a>
+                    <a class="nav-item nav-link" href="Contacts.html">Contacts</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style='font: 12px sans-serif;'>
+        <div class='row'>
+            <div class='col-xs-12'>
+                <h3>Sub Title
+            </h3>
+                <p>Additional Detail</p>
+            </div>
+        </div>
+
+        <div class='row'>
+            <div class='col-xs-12'>
+                <svg id="img_location" class="img-fluid m-x-auto" width="960" height="1060" viewBox="0 0 960 1060" preserveAspectRatio="xMidYMid">
+                </svg>
+            </div>
+        </div>
+
+        <script>
+        </script>
+        <H5>
+            Created using 
+            <a href="http://d3js.org/">d3.js</a> and 
+            <a href="http://twitter.github.io/bootstrap/">bootstrap</a>.
+            <p>Based on this <a href="">
+               original</a>
+            </p>
+         </H5>
+        <hr>
+        <footer>
+            <p>&copy; 2016 DCaph</p>
+        </footer>
+    </div>
+    <!-- /container -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Tether for Bootstrap -->
+    <script src="https://www.atlasestateagents.co.uk/javascript/tether.min.js"></script>
+    <!-- Include all compiled plugins (below) -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>
+
+    <!-- Preloader -->
+    <script>
+        $(window).on('load', function() { // makes sure the whole site is loaded 
+            $('#status').fadeOut(); // will first fade out the loading animation 
+            $('#preloader').delay(0).fadeOut('slow'); // will fade out the white DIV that covers the website. 
+            $('body').delay(0).css({
+                'overflow': 'visible'
+            });
+        })
+    </script>
+</body>
+
+</html>

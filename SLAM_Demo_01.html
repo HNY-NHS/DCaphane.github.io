@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" href="img/voyccg.png">
+    <title>RCB 15/16</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.6/d3.min.js" integrity="sha256-5idA201uSwHAROtCops7codXJ0vja+6wbBrZdQ6ETQc=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+    <link href="css/jumbotron.css" rel="stylesheet">
+
+    <style>
+        path {
+            stroke: #fff;
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div id="status">&nbsp;</div>
+    </div>
+
+    <nav class="navbar navbar-fixed-top navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="SLAM_Demo_01.html">York Trust 2015/16</a>        
+            <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#CollapsingNavbar" aria-controls="CollapsingNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                &#9776;
+            </button>
+            <div class="collapse navbar-toggleable-xs" id="CollapsingNavbar">
+
+                <div class="nav navbar-nav">
+                    <a class="nav-item nav-link" href="index.html">Home <span class="sr-only">(current)</span></a>
+                    <a class="nav-item nav-link" href="About.html">About</a>
+                    <a class="nav-item nav-link" href="Contacts.html">Contacts</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style='font: 12px sans-serif;'>
+
+        <div class='row'>
+            <div class='col-xs-12'>
+                <h3>Based on SLAM
+                  <span>
+                      <a href="javascript:history.go(0)">
+                        Refresh
+                      </a>
+                      <br>
+                  </span> 
+              </h3>
+                <p>Click on a segment to zoom in, <i>centre circle</i> to zoom out</p>
+            </div>
+        </div>
+
+        <div class='row'>
+            <div class='col-xs-12' id='test_circle'>
+            </div>
+        </div>
+
+        <H6>Created using 
+      <a href="http://d3js.org/">d3.js</a> and 
+      <a href="http://twitter.github.io/bootstrap/">bootstrap</a>.
+      <p>Based on this <a href="http://bl.ocks.org/maybelinot/5552606564ef37b5de7e47ed2b7dc099">
+      original</a></p>
+    </H6>
+
+        <script>
+            var width = 650,
+                height = 600,
+                radius = (Math.min(width, height) / 2) - 10;
+
+            var formatNumber = d3.format(",d");
+
+            var x = d3.scaleLinear()
+                .range([0, 2 * Math.PI]);
+
+            var y = d3.scaleSqrt()
+                .range([0, radius]);
+
+            var color = d3.scaleOrdinal(d3.schemeCategory20c)
+                .domain(d3.range(0, 20));
+
+            var partition = d3.partition();
+
+            var arc = d3.arc()
+                .startAngle(function(d) {
+                    return Math.max(0, Math.min(2 * Math.PI, x(d.x0)));
+                })
+                .endAngle(function(d) {
+                    return Math.max(0, Math.min(2 * Math.PI, x(d.x1)));
+                })
+                .innerRadius(function(d) {
+                    return Math.max(0, y(d.y0));
+                })
+                .outerRadius(function(d) {
+                    return Math.max(0, y(d.y1));
+                });
+
+            var svg = d3.select("#test_circle").append("svg")
+                .attr("class", "img-fluid m-x-auto")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", "0 0 " + width + " " + height)
+                .attr("preserveAspectRatio", "xMidYMid")
+                .append("g")
+                .attr("transform", "translate(" + width / 2 + "," + (height / 2) + ")");
+
+            // rearrange tabular data, such as CSV, into a hierarchy using d3.stratify
+            // add this first, notice substring using "|"
+            var stratify = d3.stratify()
+                .parentId(function(d) {
+                    return d.id.substring(0, d.id.lastIndexOf("|"));
+                });
+
+            d3.csv("data/02_SLAM_Data_fmt.csv", function(error, data) { // changed from root to data
+                if (error) throw error;
+                // console.log(data);
+
+                // to convert to hierarchy
+                var root = stratify(data)
+                    .sum(function(d) {
+                        return Math.round(+d.cost);
+                    })
+                    //.sort(function(a, b) { return b.cost - a.cost; });
+
+                root = d3.hierarchy(root);
+
+                svg.selectAll("path")
+                    .data(partition(root).descendants())
+                    .enter().append("path")
+                    //.attr("display", function(d) { return d.depth ? null : "none"; }) // hide inner ring
+                    .attr("d", arc)
+                    .style("fill", function(d) {
+                        return color((d.children ? d : d.parent).data.id);
+                    })
+                    .on("click", click)
+                    .append("title")
+                    .text(function(d) {
+                        //return d.data.id.substring(d.data.id.lastIndexOf("|") + 1)
+                        return d.data.id.replace(/\|/g, '\n') // regex to replace all (/g, global) pipes, |
+                            + "\n" + "£" + formatNumber(d.value);
+                    }); //.split(/(?=[A-Z][^A-Z])/g)
+            });
+
+            function click(d) {
+                svg.transition()
+                    .duration(750)
+                    .tween("scale", function() {
+                        var xd = d3.interpolate(x.domain(), [d.x0, d.x1]),
+                            yd = d3.interpolate(y.domain(), [d.y0, 1]),
+                            yr = d3.interpolate(y.range(), [d.y0 ? 20 : 0, radius]);
+                        return function(t) {
+                            x.domain(xd(t));
+                            y.domain(yd(t)).range(yr(t));
+                        };
+                    })
+                    .selectAll("path")
+                    .attrTween("d", function(d) {
+                        return function() {
+                            return arc(d);
+                        };
+                    });
+            }
+
+            d3.select(self.frameElement).style("height", height + "px");
+        </script>
+
+        <hr>
+
+        <footer>
+            <p>&copy; 2016 DCaph</p>
+        </footer>
+    </div>
+    <!-- /container -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Tether for Bootstrap -->
+    <script src="https://www.atlasestateagents.co.uk/javascript/tether.min.js"></script>
+    <!-- Include all compiled plugins (below) -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>
+
+    <!-- Preloader -->
+    <script>
+        //<![CDATA[
+        $(window).on('load', function() { // makes sure the whole site is loaded 
+                $('#status').fadeOut(); // will first fade out the loading animation 
+                $('#preloader').delay(350).fadeOut('slow'); // will fade out the white DIV that covers the website. 
+                $('body').delay(350).css({
+                    'overflow': 'visible'
+                });
+            })
+            //]]>
+    </script>
+
+</body>
+
+</html>

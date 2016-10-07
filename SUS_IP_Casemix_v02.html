@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" href="img/voyccg.png">
+    <title>IP Cmix Zoom</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.6/d3.min.js" integrity="sha256-5idA201uSwHAROtCops7codXJ0vja+6wbBrZdQ6ETQc=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+    <link href="css/jumbotron.css" rel="stylesheet">
+
+    <style>
+        .node {
+            cursor: pointer;
+        }
+        
+        .node:hover {
+            stroke: #ff7700;
+            stroke-width: 1.5px;
+        }
+        
+        .node--leaf {
+            fill: white;
+            -- pointer-events: none;
+            cursor: crosshair
+        }
+        
+        .label {
+            font: 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+            stroke: red;
+            fill: red;
+            text-anchor: middle;
+            text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+<div id="preloader">
+    <div id="status">&nbsp;</div>
+</div>
+
+<nav class="navbar navbar-fixed-top navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="SUS_IP_Casemix_v02.html">Inpatient Casemix</a>
+        <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#CollapsingNavbar" aria-controls="CollapsingNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            &#9776;
+        </button>
+
+        <div class="collapse navbar-toggleable-xs" id="CollapsingNavbar">
+
+            <div class="nav navbar-nav">
+                <a class="nav-item nav-link" href="index.html">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-item nav-link" href="About.html">About</a>
+                <a class="nav-item nav-link" href="Contacts.html">Contacts</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container" style='font: 12px sans-serif;'>
+    <div class='row'>
+        <div class='col-xs-12'>
+            <h3>VoY Inpatient Spend
+            </h3>
+            <p>SUS: 2015/16. Cost in £'000s. <i>Click a circle to zoom</i></p>
+        </div>
+    </div>
+
+    <div class='row'>
+        <div id='test_circle' class='col-xs-12'></div>
+    </div>
+
+
+        <script>
+            var formatNumber = d3.format(",d");
+
+            // console.log("Setting up variables...");
+            var w = 600,
+                h = 600,
+                r = 550,
+                x = d3.scaleLinear().range([0, r]),
+                y = d3.scaleLinear().range([0, r]);
+
+            var color = d3.scaleLinear()
+                .domain([-1, 5])
+                .range(["hsl(152,80%,80%)", "hsl(228,30%,40%)"])
+                .interpolate(d3.interpolateHcl);
+
+            // console.log("Setting up the pack function...");
+            var pack = d3.pack()
+                .padding(2)
+                .size([r, r]);
+
+            var stratify = d3.stratify()
+                .parentId(function(d) {
+                    return d.id.substring(0, d.id.lastIndexOf("|"));
+                });
+
+            var svg = d3.select("#test_circle").append("svg")
+                .attr("class", "img-fluid m-x-auto")
+                .attr("width", w)
+                .attr("height", h)
+                .attr("viewBox", "0 0 " + w + " " + h)
+                .attr("preserveAspectRatio", "xMidYMid")
+                .append("g")
+                .attr("transform", "translate(" + (w - r) / 2 + "," + (h - r) / 2 + ")");
+
+            d3.csv("data/IP_Casemix_fmt_RCBOnly.csv", function(error, data) { // 02_SLAM_Data_fmt.csv
+                if (error) throw error;
+
+                data.forEach(function(d) {
+                    d.cost = +d.cost;
+                });
+
+                var root = stratify(data)
+                    .sum(function(d) {
+                        return d.cost;
+                    })
+                    .sort(function(a, b) {
+                        return b.cost - a.cost;
+                    });
+
+                var focus = root,
+                    nodes = pack(root),
+                    view;
+
+                // console.log(focus)
+
+                var circle = svg.selectAll("circle")
+                    .data(root.descendants())
+                    .enter().append("circle")
+                    .attr("class", function(d) {
+                        return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root";
+                    })
+                    .attr("cx", function(d) {
+                        return d.x;
+                    })
+                    .attr("cy", function(d) {
+                        return d.y;
+                    })
+                    .attr("r", function(d) {
+                        return d.r;
+                    })
+                    .style("fill", function(d) {
+                        return d.children ? color(d.depth) : null;
+                    })
+                    .on("click", function(d) {
+                        return zoom(node == d ? root : d);
+                    })
+                    //.on("click", function(d) { if (focus !== d) zoom(d), d3.event.stopPropagation(); });              
+                    .append("title")
+                    .text(function(d) {
+                        return d.id.replace(/\|/g, '\n') + "\n" + "£" + formatNumber(d.value);
+                    });
+
+                var text = svg.selectAll("text")
+                    .data(root.descendants())
+                    .enter().append("text")
+                    .attr("class", "label") //function (d) {return d.children ? "parent" : "child"; })
+                    .attr("x", function(d) {
+                        return d.x;
+                    })
+                    .attr("y", function(d) {
+                        return d.y;
+                    })
+                    //.attr("dy", ".35em")
+                    .style("opacity", function(d) {
+                        return d.parent === root ? 1 : 0;
+                    }) //{ return d.r > 20 ? 1 : 0; })
+                    .style("display", function(d) {
+                        return d.parent === root ? "inline" : "none";
+                    })
+                    .text(function(d) {
+                        return d.id.substring(d.id.lastIndexOf("|") + 1);
+                    });
+
+                var node = svg.selectAll("circle, text");
+
+                d3.select("#test_circle")
+                    //.style("background", color(-1))
+                    .on("click", function() {
+                        zoom(root);
+                    });
+
+                d3.select(window).on("click", function() {
+                    zoom(root);
+                }); // zoom out         
+
+                function zoom(d, i) {
+                    var focus0 = focus;
+                    focus = d;
+
+                    var k = r / d.r / 2;
+                    x.domain([d.x - d.r, d.x + d.r]);
+                    y.domain([d.y - d.r, d.y + d.r]);
+
+                    var transition = svg.transition()
+                        .duration(d3.event.altKey ? 7500 : 750);
+
+                    transition.selectAll("circle")
+                        .attr("cx", function(d) {
+                            return x(d.x);
+                        })
+                        .attr("cy", function(d) {
+                            return y(d.y);
+                        })
+                        .attr("r", function(d) {
+                            return k * d.r;
+                        });
+
+                    transition.selectAll("text")
+                        .attr("x", function(d) {
+                            return x(d.x);
+                        })
+                        .attr("y", function(d) {
+                            return y(d.y);
+                        })
+                        .filter(function(d) {
+                            return d.parent === focus || this.style.display === "inline";
+                        })
+                        .style("opacity", function(d) {
+                            return d.parent === focus ? 1 : 0;
+                        })
+                        .on("start", function(d) {
+                            if (d.parent === focus) this.style.display = "inline";
+                        })
+                        .on("end", function(d) {
+                            if (d.parent !== focus) this.style.display = "none";
+                        });
+
+                    node = d;
+                    d3.event.stopPropagation();
+                }
+
+            });
+        </script>
+        <H5>
+            Created using 
+            <a href="http://d3js.org/">d3.js</a> and 
+            <a href="http://twitter.github.io/bootstrap/">bootstrap</a>.
+            <p>Based on this <a href="https://bl.ocks.org/mbostock/7607535">
+               original</a>
+            </p>
+         </H5>
+        <hr>
+        <footer>
+            <p>&copy; 2016 DCaph</p>
+        </footer>
+</div>
+<!-- /container -->
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<!-- Tether for Bootstrap -->
+<script src="https://www.atlasestateagents.co.uk/javascript/tether.min.js"></script>
+<!-- Include all compiled plugins (below) -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>
+
+<!-- Preloader -->
+<script>
+    //<![CDATA[
+    $(window).on('load', function() { // makes sure the whole site is loaded 
+            $('#status').fadeOut(); // will first fade out the loading animation 
+            $('#preloader').delay(350).fadeOut('slow'); // will fade out the white DIV that covers the website. 
+            $('body').delay(350).css({
+                'overflow': 'visible'
+            });
+        })
+        //]]>
+</script>
+</body>

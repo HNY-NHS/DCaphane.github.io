@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <link rel="icon" href="img/voyccg.png">
+    <title>OP Review</title>
+
+    <!-- d3.js - Use v3 for dc.js compatibility -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js'></script>
+    <!-- Crossfilter -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.min.js'></script>
+    <!-- dc.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.0-dev/dc.min.js" integrity="sha256-FSv+agR6evGDoZq6tvRgPp5y8Oc7Qc1xTJYFlkAL6Ak=" crossorigin="anonymous"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+    <link href="css/jumbotron.css" rel="stylesheet">
+    <!-- dc CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.0-dev/dc.css" integrity="sha256-6p2pwYzJlfHKkJqjfg790OmEzrbHyC6kLqkMgXLVASc=" crossorigin="anonymous" />
+    <style>
+        .dc-chart g.row text {
+            fill: black;
+            font-size: 8px;
+            float: left;
+        }
+        
+        .dc-table-group {
+            display: none
+        }
+        
+        .table-hover tbody tr:hover td,
+        .table-hover tbody tr:hover th {
+            background-color: #E0EEEE;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div id="status">&nbsp;</div>
+    </div>
+
+    <nav class="navbar navbar-fixed-top navbar-dark bg-primary">
+        <div class="container">
+            <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#CollapsingNavbar" aria-controls="CollapsingNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                &#9776;
+            </button>
+            <a class="navbar-brand" href="javascript:dc.filterAll();dc.renderAll();">Outpatient Overview</a>
+            <div class="collapse navbar-toggleable-xs" id="CollapsingNavbar">
+
+                <div class="nav navbar-nav">
+                    <a class="nav-item nav-link" href="Index.html">Home <span class="sr-only">(current)</span></a>
+                    <a class="nav-item nav-link" href="About.html">About</a>
+                    <a class="nav-item nav-link" href="Contacts.html">Contacts</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class='container' style='font: 12px sans-serif;'>
+
+        <!--
+        <div class='row col-xs-12'>
+                <h2>Outpatient Overview
+                  <span>
+                      <a href="javascript:dc.filterAll();dc.renderAll();">
+                        Reset All
+                      </a>
+                  </span> 
+              </h2>
+        </div>
+        -->
+
+        <div class='row'>
+            <div class='col-xs-12 col-lg-8' id='cht_Referral_Trend'>
+                <h3>Referrals
+              <span>
+                  <a class="reset"
+                    href="javascript:RefTrendChart.filterAll();dc.redrawAll();"
+                    style="display: inline;">
+                    reset
+                  </a>
+              </span>
+          </h3>
+            </div>
+
+            <div class='col-xs-12 col-lg-4' id='cht_PieReferralSpecs'>
+                <h3>by Speciality
+            <span>
+                <a class="reset"
+                    href="javascript:TFCRefs_PieChart.filterAll();dc.redrawAll();"
+                    style="display: inline;">
+                    reset
+                </a>
+            </span>
+          </h3>
+            </div>
+        </div>
+
+        <br>
+        <div class='row'>
+            <div class='col-xs-12 col-lg-8' id='cht_Firsts_Trend'>
+                <h3>Firsts
+              <span>
+                  <a class="reset"
+                    href="javascript:FirstsTrendChart.filterAll();dc.redrawAll();"
+                    style="display: inline;">
+                    reset
+                  </a>
+              </span>          
+          </h3>
+            </div>
+
+            <div class='col-xs-12 col-lg-4' id='cht_ReferralSource'>
+                <h3>by Referral Source
+            <span>
+                <a class="reset"
+                    href="javascript:RefSource_RowChart.filterAll();dc.redrawAll();"
+                    style="display: inline;">
+                    reset
+                </a>
+            </span>
+          </h3>
+            </div>
+        </div>
+
+        <br>
+        <div class='row'>
+            <div class='col-xs-12' id='cht_PracticeBubble'>
+                <h3>by Practice
+            <span>
+                <a class="reset"
+                    href="javascript:Practice_BubbleChart.filterAll();dc.redrawAll();"
+                    style="display: inline;">
+                    reset
+                </a>
+            </span>
+          </h3>
+            </div>
+        </div>
+
+        <!-- for demo only -->
+        <div class='table-responsive'>
+            <br>
+            <h3>Dummy Table</h3>
+            <table class='table table-sm table-striped table-hover' id='cht_Table'>
+                <thead class="thead-inverse">
+                    <tr class='header'>
+                        <th>Practice Code</th>
+                        <th>Period</th>
+                        <th>Ref Source</th>
+                        <th>Speciality</th>
+                        <th>Referrals</th>
+                        <th>Firsts</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+
+        <H5>Created using 
+      <a href="http://nickqizhu.github.io/dc.js/">dc.js</a>,
+      <a href="http://square.github.io/crossfilter/">crossfilter</a>, 
+      <a href="http://d3js.org/">d3.js</a> and 
+      <a href="http://twitter.github.io/bootstrap/">bootstrap</a>.
+    </H5>
+
+        <script type='text/javascript'>
+            // Reference
+            //http://bl.ocks.org/jun9/raw/5631952/
+
+            // Create the dc.js chart objects & link to div
+            var RefTrendChart = dc.barChart('#cht_Referral_Trend'),
+                TFCRefs_PieChart = dc.pieChart('#cht_PieReferralSpecs'),
+                FirstsTrendChart = dc.barChart('#cht_Firsts_Trend'),
+                RefSource_RowChart = dc.rowChart('#cht_ReferralSource'),
+                Practice_BubbleChart = dc.bubbleChart('#cht_PracticeBubble'),
+                Data_Table = dc.dataTable('#cht_Table');
+
+            // load the data
+            d3.csv('data/OP_DemoData_4.csv', function(error, data) {
+                if (error) { //If error is not null, something went wrong.
+                    console.log(error); //Log the error.
+                } else { //If no error, the file loaded correctly. Yay!
+                    // console.log(data); //Log the data.
+
+                    // Format Data
+                    var parseDate = d3.time.format('%d/%m/%Y %H:%M'), // import format
+                        formatPeriod = d3.time.format('%b-%y'), // presentational format eg. Apr-16
+                        formatNumber = d3.format(",d");
+
+                    data.forEach(function(d) {
+                        d.Period = parseDate.parse(d.Period);
+                        //d.PeriodSht = formatPeriod(d.Period);
+                        d.Firsts = +d.Firsts;
+                        d.Referrals = +d.Referrals;
+                    });
+
+                    // Run the data through crossfilter and load the cf_data
+                    var cf_data = crossfilter(data);
+                    var All = cf_data.groupAll(); // A convenience function for grouping all records and reducing to a single value
+
+                    // Create dimensions and groups
+                    var pDate = cf_data.dimension(function(d) {
+                            return d.Period;
+                        }),
+                        pDateRefsGroup = pDate.group().reduceSum(function(d) {
+                            return d.Referrals;
+                        }),
+                        pDateFirstsGroup = pDate.group().reduceSum(function(d) {
+                            return d.Firsts;
+                        }),
+                        TFC = cf_data.dimension(function(d) {
+                            return d.TF_Code;
+                        }),
+                        TFCFirstsGroup = TFC.group().reduceSum(function(d) {
+                            return d.Firsts; // d.Referrals
+                        }),
+                        RefSource = cf_data.dimension(function(d) {
+                            return d.Ref_Source;
+                        }),
+                        RefSourceFirstsGroup = RefSource.group().reduceSum(function(d) {
+                            return d.Firsts; // d.Referrals
+                        }),
+                        Practice = cf_data.dimension(function(d) {
+                            return d.Practice_Code;
+                        }),
+                        PracticeGroup = Practice.group().reduceSum(function(d) {
+                            return d.Firsts;
+                        });
+
+                    var w1 = $('#cht_Referral_Trend').width() * 0.9,
+                        w2 = $('#cht_PieReferralSpecs').width() * 0.9,
+                        w3 = $('#cht_PracticeBubble').width(),
+                        h = 300;
+
+                    RefTrendChart
+                        .width(w1)
+                        .height(h)
+                        .margins({
+                            top: 10,
+                            right: 10,
+                            bottom: 20,
+                            left: 40
+                        })
+                        .dimension(pDate) // x-axis
+                        .group(pDateRefsGroup) // y-axis
+                        .transitionDuration(500)
+                        .centerBar(false)
+                        .gap(-10)
+                        .x(d3.time.scale()
+                            .domain(d3.extent(data, function(d) {
+                                return d.Period;
+                            }))
+                        )
+                        .filter([new Date('2014, 4, 1'), new Date('2016, 3, 31')]) // used if want to load pre-filtered
+                        //.elasticX(true)
+                        .elasticY(true)
+                        .title(function(d) {
+                            return "Value: " + d.value;
+                        })
+                        .xAxis().tickFormat(formatPeriod).ticks();
+
+                    TFCRefs_PieChart
+                        .width(w2)
+                        .height(w2)
+                        .innerRadius(20)
+                        .dimension(TFC)
+                        .group(TFCFirstsGroup)
+                        .colors(d3.scale.category20())
+                        .renderLabel(true)
+                        .title(function(d) {
+                            return d.key + '\n' + formatNumber(d.value);
+                        });
+
+                    FirstsTrendChart
+                        .width(w1)
+                        .height(h)
+                        .margins({
+                            top: 10,
+                            right: 10,
+                            bottom: 20,
+                            left: 40
+                        })
+                        .dimension(pDate) // x-axis
+                        .group(pDateFirstsGroup) // y-axis
+                        .transitionDuration(500)
+                        .centerBar(false)
+                        .gap(-10)
+                        .x(d3.time.scale()
+                            .domain(d3.extent(data, function(d) {
+                                return d.Period;
+                            }))
+                        )
+                        .brushOn(false)
+                        //.filter([new Date('2016, 1, 1'), new Date('2016, 3, 1')])  // used if want to load pre-filtered
+                        //.elasticX(true)
+                        .elasticY(true)
+                        .title(function(d) {
+                            return "Value: " + formatNumber(d.value);
+                        })
+                        .xAxis().tickFormat(formatPeriod).ticks();
+
+                    RefSource_RowChart
+                        .width(w2)
+                        .height(w2)
+                        .margins({
+                            top: 5,
+                            left: 5,
+                            right: 10,
+                            bottom: 20
+                        })
+                        .dimension(RefSource) // for a row chart, y-axis
+                        .group(RefSourceFirstsGroup) // for a row chart, x-axis
+                        .colors(d3.scale.category10())
+                        .colorDomain([5, 30000])
+                        .colorAccessor(function(d) {
+                            return d.value;
+                        })
+                        .gap(0.5)
+                        .label(function(d) {
+                            return d.key;
+                        })
+                        .title(function(d) {
+                            return d.key + '\n' + formatNumber(d.value);
+                        }) // tooltip
+                        .elasticX(true)
+                        .xAxis().ticks(4);
+
+                    // http://bl.ocks.org/zhizhiloh/cdff20e19cd57a4f673c
+                    Practice_BubbleChart
+                        .width(w3)
+                        .height(h)
+                        .margins({
+                            top: 5,
+                            right: 10,
+                            bottom: 3,
+                            left: 50
+                        })
+                        .transitionDuration(500)
+                        .dimension(Practice) // what's this?
+                        .group(PracticeGroup)
+                        .keyAccessor(function(d) {
+                            return d.key;
+                        }) // x-axis
+                        .valueAccessor(function(d) {
+                            return d.value;
+                        }) // y-axis
+                        .radiusValueAccessor(function(d) {
+                            return d.value;
+                        }) // radius size
+                        .maxBubbleRelativeSize(0.05)
+                        .x(d3.scale.ordinal())
+                        .xUnits(dc.units.ordinal)
+                        .elasticY(true)
+                        .y(d3.scale.linear().domain([0, 50000]))
+                        .elasticRadius(true)
+                        .r(d3.scale.sqrt())
+                        .title(function(d) {
+                            return d.key + '\n' + formatNumber(d.value);
+                        })
+                        //.renderLabel(true)
+                        .label(function(d) {
+                            return d.key;
+                        })
+                        .colors(d3.scale.category20()) //colors(d3.scale.category20())
+                        .colorDomain([5, 50000]) //d3.extent(data, function(d) { return d.value; })
+                        .colorAccessor(function(d) {
+                            return d.value;
+                        });
+                    // hide axis labels
+
+                    Data_Table
+                        .width(w3)
+                        .height(h * 2)
+                        .dimension(pDate)
+                        .group(function(d) {
+                            return pDateRefsGroup
+                        })
+                        .size(6) // number of rows
+                        .columns([
+                            function(d) {
+                                return d.Practice_Code;
+                            },
+                            function(d) {
+                                return formatPeriod(d.Period);
+                            },
+                            function(d) {
+                                return d.Ref_Source;
+                            },
+                            function(d) {
+                                return d.TF_Code;
+                            },
+                            function(d) {
+                                return d.Referrals;
+                            },
+                            function(d) {
+                                return d.Firsts;
+                            }
+                        ])
+                        .sortBy(function(d) {
+                            return d.Practice_Code + pDate + d.Ref_Source + d.TF_Code;
+                        })
+                        .order(d3.ascending);
+
+                    // Render the Charts
+                    dc.renderAll();
+                }
+            });
+        </script>
+
+        <hr>
+
+        <footer>
+            <p>&copy; 2016 DCaph</p>
+        </footer>
+    </div>
+    <!-- /container -->
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Tether for Bootstrap -->
+    <script src="https://www.atlasestateagents.co.uk/javascript/tether.min.js"></script>
+    <!-- Include all compiled plugins (below) -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>
+
+    <!-- Preloader -->
+    <script type="text/javascript">
+        //<![CDATA[
+        $(window).on('load', function() { // makes sure the whole site is loaded 
+                $('#status').fadeOut(); // will first fade out the loading animation 
+                $('#preloader').delay(350).fadeOut('slow'); // will fade out the white DIV that covers the website. 
+                $('body').delay(350).css({
+                    'overflow': 'visible'
+                });
+            })
+            //]]>
+    </script>
+
+</body>
+
+</html>
