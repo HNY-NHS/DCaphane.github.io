@@ -9,21 +9,17 @@
     <link rel="icon" href="img/voyccg.png">
     <title>IP Treemap</title>
 
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.6/d3.min.js" integrity="sha256-5idA201uSwHAROtCops7codXJ0vja+6wbBrZdQ6ETQc=" crossorigin="anonymous"></script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha256-dsOXGNHAo/syFnazt+KTBsCQeRmlcW1XKL0bCK4Baec=" crossorigin="anonymous"></script>    <link href="css/jumbotron.css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha256-dsOXGNHAo/syFnazt+KTBsCQeRmlcW1XKL0bCK4Baec=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
     <link href="css/jumbotron.css" rel="stylesheet">
-    
-    
     <style>
-
-
-    #img_location {
-      width: 960px;
-      height: 600px;
-      background: steelblue;
-    }
-    
-    
+        #img_location {
+            width: 960px;
+            height: 610px;
+            margin-bottom: 4px;
+            background: #ddd; //steelblue; //#fff1e0
+        }
+        
         text {
             pointer-events: none;
         }
@@ -35,6 +31,7 @@
         rect {
             fill: none;
             stroke: #fff;
+
         }
         
         rect.parent,
@@ -62,6 +59,22 @@
         
         .children:hover rect.child {
             fill: #bbb;
+        }
+        
+        .tooltip {
+            background: #eee;
+            //box-shadow: 0 0 5px #999999;
+            color: #333;
+            font-size: 11px;
+            line-height: 12px;
+            //left: 130px;
+            width: 50px;
+            border-style: solid;
+            border-color: #76787A;
+            border-width: 1px;
+            //border-radius: 7px;
+            //position: absolute;
+            //z-index: 1000;
         }
     </style>
 </head>
@@ -94,12 +107,11 @@
             <div class='col-xs-12'>
                 <h3>VoY CCG: Inpatient Casemix, SUS: 2015/16
             </h3>
-                <p>Cost in £'000s.</p>
             </div>
         </div>
 
-        <div class='row'>
-            <div id="img_location" class='col-xs-12'>
+        <div class="row">
+            <div id="img_location" class="col-xs-12">
             </div>
         </div>
 
@@ -115,6 +127,8 @@
                 formatNumber = d3.format(",d"),
                 transitioning;
 
+            //var color = d3.scale.category20c();
+            
             var x = d3.scale.linear()
                 .domain([0, width])
                 .range([0, width]);
@@ -123,21 +137,11 @@
                 .domain([0, height])
                 .range([0, height]);
 
-            var treemap = d3.layout.treemap()
-                .children(function(d, depth) {
-                    return depth ? null : d._children;
-                })
-                .sort(function(a, b) {
-                    return a.value - b.value;
-                })
-                .ratio(height / width * 0.5 * (1 + Math.sqrt(5)))
-                .round(false);
-
             var svg = d3.select("#img_location").append("svg")
                 .attr("class", "img-fluid m-x-auto")
                 .attr("viewBox", "0 0 " + width + " " + height)
                 .attr("preserveAspectRatio", "xMidYMid")
-                .attr("width", width + margin.left + margin.right)
+                //.attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.bottom + margin.top)
                 .style("margin-left", -margin.left + "px")
                 .style("margin.right", -margin.right + "px")
@@ -145,7 +149,15 @@
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
                 .style("shape-rendering", "crispEdges");
 
+            var tip = d3.select('#img_location').append('div')
+                .attr('class', 'tooltip')
+                .style('position', 'absolute')
+                .style('padding', '5px 10px')
+                .style('background', 'white')
+                .style('opacity', 0)
+
             var grandparent = svg.append("g")
+                //.attr("id", "menuBar")
                 .attr("class", "grandparent");
 
             grandparent.append("rect")
@@ -158,10 +170,47 @@
                 .attr("y", 6 - margin.top)
                 .attr("dy", ".75em");
 
-            d3.json("data/flare.json", function(error, root) {
+
+            var treemap = d3.layout.treemap()
+                //.children(function(d, depth) { return depth ? null : d.children; })
+                .children(function(d, depth) {
+                    return depth ? null : d.values;
+                })
+                //.text(function(d) { return d.key; })
+                .value(function(d) {
+                    return d.value;
+                })
+                .sort(function(a, b) {
+                    return a.value - b.value;
+                })
+                .ratio(height / width * 0.5 * (1 + Math.sqrt(5)))
+                .round(false);
+
+            d3.csv("data/IP_Casemix_fmt_table.csv", function(error, data) {
                 if (error) throw error;
 
+                var root = {
+                    "key": "Trust",
+                    "values": d3.nest()
+                        .key(function(d) {
+                            return d.Trust;
+                        })
+                        .key(function(d) {
+                            return d.POD;
+                        })
+                        .key(function(d) {
+                            return d.detail_01;
+                        })
+                        .key(function(d) {
+                            return d.detail_02;
+                        })
+                        .key(function(d) {
+                            return d.detail_03;
+                        })                        
+                        .entries(data)
+                }
                 
+
                 initialize(root);
                 accumulate(root);
                 layout(root);
@@ -176,27 +225,26 @@
 
                 // Aggregate the values for internal nodes. This is normally done by the
                 // treemap layout, but not here because of our custom implementation.
-                // We also take a snapshot of the original children (_children) to avoid
-                // the children being overwritten when layout is computed.
                 function accumulate(d) {
-                    return (d._children = d.children) ? d.value = d.children.reduce(function(p, v) {
+                    //console.log(d.children);
+                    return d.values ? d.value = d.values.reduce(function(p, v) {
                         return p + accumulate(v);
-                    }, 0) : d.value;
+                    }, 0) : +d.value;
                 }
 
                 // Compute the treemap layout recursively such that each group of siblings
-                // uses the same value (1×1) rather than the dimensions of the parent cell.
+                // uses the same size (1×1) rather than the dimensions of the parent cell.
                 // This optimizes the layout for the current zoom state. Note that a wrapper
                 // object is created for the parent node for each group of siblings so that
                 // the parent’s dimensions are not discarded as we recurse. Since each group
                 // of sibling was laid out in 1×1, we must rescale to fit using absolute
                 // coordinates. This lets us use a viewport to zoom.
                 function layout(d) {
-                    if (d._children) {
+                    if (d.values) {
                         treemap.nodes({
-                            _children: d._children
+                            values: d.values
                         });
-                        d._children.forEach(function(c) {
+                        d.values.forEach(function(c) {
                             c.x = d.x + c.x * d.dx;
                             c.y = d.y + c.y * d.dy;
                             c.dx *= d.dx;
@@ -212,25 +260,25 @@
                         .datum(d.parent)
                         .on("click", transition)
                         .select("text")
-                        .text(name(d));
+                        .text(name(d)); //boxNames(d, 'long')
 
                     var g1 = svg.insert("g", ".grandparent")
                         .datum(d)
                         .attr("class", "depth");
 
                     var g = g1.selectAll("g")
-                        .data(d._children)
-                        .enter().append("g");
+                        .data(d.values)
+                        .enter().append("g")
 
                     g.filter(function(d) {
-                            return d._children;
+                            return d.values;
                         })
                         .classed("children", true)
                         .on("click", transition);
 
                     g.selectAll(".child")
                         .data(function(d) {
-                            return d._children || [d];
+                            return d.values || [d];
                         })
                         .enter().append("rect")
                         .attr("class", "child")
@@ -241,13 +289,18 @@
                         .call(rect)
                         .append("title")
                         .text(function(d) {
-                            return formatNumber(d.value);
+                            return d.key + "\n" + "£" + formatNumber(d.value);
                         });
+
 
                     g.append("text")
                         .attr("dy", ".75em")
                         .text(function(d) {
-                            return d.name;
+                            return d.key; //boxNames(d, 'short')
+                        })
+                        .style("opacity", function(d) {
+                            d.w = this.getComputedTextLength();
+                            return d.dx > d.w * .42 ? 1 : 0;
                         })
                         .call(text);
 
@@ -286,7 +339,6 @@
                             transitioning = false;
                         });
                     }
-
                     return g;
                 }
 
@@ -312,18 +364,22 @@
                         .attr("height", function(d) {
                             return y(d.y + d.dy) - y(d.y);
                         });
+                        //.style("fill", function(d) { return color(d.key); });
+                        //.style("fill", function(d) { return (color(findProperty(d, 'Trust')))});
                 }
 
-                function name(d) {
-                    return d.parent ? name(d.parent) + "." + d.name : d.name;
-                }
+
+  function name(d) {
+    return d.parent ? name(d.parent) + "." + d.key : d.key; }
+    
             });
         </script>
+        <br>
         <H5>
             Created using 
             <a href="http://d3js.org/">d3.js</a> and 
             <a href="http://twitter.github.io/bootstrap/">bootstrap</a>.
-            <p>Based on this <a href="https://bl.ocks.org/mbostock/911ad09bdead40ec0061">
+            <p>Based on this <a href="https://bost.ocks.org/mike/treemap/">
                original</a>
             </p>
          </H5>
