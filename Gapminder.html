@@ -77,7 +77,7 @@
         </div>
 
         <script>
-            var years = d3.range(1950, 2015 + 1)
+            var years = d3.range(2015, 2015 + 1) //1950, 2015 + 1
             var interval = 500
 
             var blurStable = '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 5 -7'
@@ -106,13 +106,13 @@
             var x = d3.scaleLinear().range([0, width])
             var y = d3.scaleLinear().range([height, 0])
             var r = d3.scaleSqrt().range([0, 50])
-            var color = d3.scaleOrdinal()
-                .range(['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#e6ab02', '#666666'])
+            var color = d3.scaleOrdinal(d3.schemeCategory20)
+                //.range(['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#e6ab02', '#666666'])
 
             var xAxis = d3.axisBottom().scale(x)
             var yAxis = d3.axisLeft().scale(y)
 
-            var yearLabel = svg.append('text')
+            /*var yearLabel = svg.append('text')
                 .attr('class', 'year')
                 .attr('x', width / 2)
                 .attr('y', height / 2)
@@ -121,24 +121,24 @@
                 .style('text-anchor', 'middle')
                 .style('font-weight', 'bold')
                 .style('opacity', 0.2)
-                .text('1950')
+                .text('1950')*/
 
-            d3.csv('data/Gapminder_Data.csv', function(d) {
+            d3.csv('data/Gapminder_DummyData.csv', function(d) {
                 return {
+                    year: d.Test,                    
+                    continent: d.continent,                  
                     country: d.country,
-                    year: d.year,
                     life_expectancy: +d.life_expectancy,
                     total_fertility: +d.total_fertility,
-                    population: +d.population,
-                    continent: d.continent
-                }
+                    population: +d.population
+                };
             }, initialize)
 
             function initialize(error, data) {
                 if (error) {
                     throw error
                 }
-
+console.log(data[0]);
                 x.domain([0, d3.max(data, function(d) {
                     return d.total_fertility
                 })]).nice()
@@ -151,7 +151,7 @@
 
                 data = d3.nest()
                     .key(function(d) {
-                        return d.year
+                        return d.Test
                     })
                     .key(function(d) {
                         return d.continent
@@ -283,7 +283,7 @@
                 }
 
                 function update() {
-                    yearLabel.transition().duration(0).delay(interval / 2).text(year)
+                    //yearLabel.transition().duration(0).delay(interval / 2).text(year)
                     continents = continents.data(
                         data.find(function(d) {
                             return d.key === year
