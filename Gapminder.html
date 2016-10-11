@@ -18,7 +18,7 @@
             fill: #333;
         }
         
-        text.year {
+        text.Year {
             font-family: monospace;
             pointer-events: none;
         }
@@ -113,7 +113,7 @@
             var yAxis = d3.axisLeft().scale(y)
 
             /*var yearLabel = svg.append('text')
-                .attr('class', 'year')
+                .attr('class', 'Year')
                 .attr('x', width / 2)
                 .attr('y', height / 2)
                 .attr('dy', '.28em')
@@ -125,12 +125,12 @@
 
             d3.csv('data/Gapminder_DummyData.csv', function(d) {
                 return {
-                    year: d.Test,                    
-                    continent: d.continent,                  
-                    country: d.country,
-                    life_expectancy: +d.life_expectancy,
-                    total_fertility: +d.total_fertility,
-                    population: +d.population
+                    Year: d.Year,                    
+                    HRG_Chapter: d.HRG_Chapter,                  
+                    HRG: d.HRG,
+                    Unit_Cost: +d.Unit_Cost,
+                    Activity: +d.Activity,
+                    Total_Cost: +d.Total_Cost
                 };
             }, initialize)
 
@@ -140,13 +140,13 @@
                 }
 console.log(data[0]);
                 x.domain([0, d3.max(data, function(d) {
-                    return d.total_fertility
+                    return d.Activity
                 })]).nice()
                 y.domain([0, d3.max(data, function(d) {
-                    return d.life_expectancy
+                    return d.Unit_Cost
                 })]).nice()
                 r.domain([0, d3.max(data, function(d) {
-                    return d.population
+                    return d.Total_Cost
                 })])
 
                 data = d3.nest()
@@ -154,21 +154,21 @@ console.log(data[0]);
                         return d.Test
                     })
                     .key(function(d) {
-                        return d.continent
+                        return d.HRG_Chapter
                     })
                     .entries(data)
 
                 data.forEach(function(d) {
                     d.values.forEach(function(e) {
-                        e.population = d3.sum(e.values, function(f) {
-                            return f.population
+                        e.Total_Cost = d3.sum(e.values, function(f) {
+                            return f.Total_Cost
                         })
-                        e.total_fertility = d3.sum(e.values, function(f) {
-                            return f.population * f.total_fertility
-                        }) / e.population
-                        e.life_expectancy = d3.sum(e.values, function(f) {
-                            return f.population * f.life_expectancy
-                        }) / e.population
+                        e.Activity = d3.sum(e.values, function(f) {
+                            return f.Total_Cost * f.Activity
+                        }) / e.Total_Cost
+                        e.Unit_Cost = d3.sum(e.values, function(f) {
+                            return f.Total_Cost * f.Unit_Cost
+                        }) / e.Total_Cost
                         e.values.forEach(function(f) {
                             f.parent = e
                         })
@@ -229,7 +229,7 @@ console.log(data[0]);
                     .text('Life expectancy (years)')
 
                 var yearIndex = 0
-                var year = '' + years[yearIndex]
+                var Year = '' + years[yearIndex]
                 var exploded = d3.set()
                 var blurTransition = d3.set()
 
@@ -251,10 +251,10 @@ console.log(data[0]);
                     })
                 })
 
-                var continents = svg.selectAll('.continent')
+                var continents = svg.selectAll('.HRG_Chapter')
                     .data(data[0].values)
                     .enter().append('g')
-                    .attr('class', 'continent')
+                    .attr('class', 'HRG_Chapter')
                     .style('filter', function(d) {
                         return 'url(#gooeyCodeFilter-' + d.key.replace(' ', '-') + ')'
                     })
@@ -268,7 +268,7 @@ console.log(data[0]);
                     })
                     .on('click', function(d) {
                         exploded.add(d.key);
-                        blurTransition.add(d.continent)
+                        blurTransition.add(d.HRG_Chapter)
                     })
                     .append('title').text(function(d) {
                         return d.key
@@ -278,44 +278,44 @@ console.log(data[0]);
                 d3.interval(incrementYear, interval)
 
                 function incrementYear() {
-                    year = '' + years[++yearIndex >= years.length ? yearIndex = 0 : yearIndex]
+                    Year = '' + years[++yearIndex >= years.length ? yearIndex = 0 : yearIndex]
                     update()
                 }
 
                 function update() {
-                    //yearLabel.transition().duration(0).delay(interval / 2).text(year)
+                    //yearLabel.transition().duration(0).delay(interval / 2).text(Year)
                     continents = continents.data(
                         data.find(function(d) {
-                            return d.key === year
+                            return d.key === Year
                         }).values,
                         function(d) {
                             return d.key
                         }
                     )
 
-                    var countries = continents.selectAll('.country')
+                    var countries = continents.selectAll('.HRG')
                         .data(function(d) {
                             return d.values
                         }, function(d) {
-                            return d.country
+                            return d.HRG
                         })
 
                     countries.exit().remove()
 
                     var enterCountries = countries.enter().insert('circle', '.aggregate')
-                        .attr('class', 'country')
+                        .attr('class', 'HRG')
                         .attr('cx', width / 2)
                         .attr('cy', height / 2)
                         .style('fill', function(d) {
-                            return color(d.continent)
+                            return color(d.HRG_Chapter)
                         })
                         .on('click', function(d) {
-                            exploded.remove(d.continent);
-                            blurTransition.add(d.continent)
+                            exploded.remove(d.HRG_Chapter);
+                            blurTransition.add(d.HRG_Chapter)
                         })
 
                     enterCountries.append('title').text(function(d) {
-                        return d.country
+                        return d.HRG
                     })
 
                     countries = countries.merge(enterCountries)
@@ -327,25 +327,25 @@ console.log(data[0]);
                     continents.select('.aggregate')
                         .transition(t)
                         .attr('r', function(d) {
-                            return exploded.has(d.key) ? 0 : r(d.population)
+                            return exploded.has(d.key) ? 0 : r(d.Total_Cost)
                         })
                         .attr('cx', function(d) {
-                            return x(d.total_fertility)
+                            return x(d.Activity)
                         })
                         .attr('cy', function(d) {
-                            return y(d.life_expectancy)
+                            return y(d.Unit_Cost)
                         })
 
                     countries
                         .transition(t)
                         .attr('r', function(d) {
-                            return r(d.population)
+                            return r(d.Total_Cost)
                         })
                         .attr('cx', function(d) {
-                            return x((exploded.has(d.continent) ? d : d.parent).total_fertility)
+                            return x((exploded.has(d.HRG_Chapter) ? d : d.parent).Activity)
                         })
                         .attr('cy', function(d) {
-                            return y((exploded.has(d.continent) ? d : d.parent).life_expectancy)
+                            return y((exploded.has(d.HRG_Chapter) ? d : d.parent).Unit_Cost)
                         })
 
                     blurValues
