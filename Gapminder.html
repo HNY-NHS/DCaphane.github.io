@@ -31,11 +31,13 @@
         
         .aggregate {
           stroke: #000;
+          stroke-opacity: 0.5;
           opacity: 0.99;
         }
         
         .HRG {
           stroke: #f00;
+          stroke-opacity: 0.8;
           opacity: 0.8;
         }        
     </style>
@@ -383,7 +385,27 @@
                                 return blurStable
                             }
                         })
+                        
+                        
+                HRG_Chapters.on("mouseover", function(d) {
+                    d3.select(this).style("stroke", "#00f").style("stroke-width", 3)
+                })
+    
+                HRG_Chapters.on("mouseout", function(d) {
+                    d3.select(this).style("stroke", "").style("stroke-width", "")
+                })  
+
+
+                                HRGs.on("mouseover", function(d) {
+                    d3.select(this).style("stroke", "yellow").style("stroke-width", 3)
+                })
+    
+                HRGs.on("mouseout", function(d) {
+                    d3.select(this).style("stroke", "").style("stroke-width", "")
+                }) 
                 }
+                
+                
             }
         </script>
         <H5>
