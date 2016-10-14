@@ -29,17 +29,20 @@
             left: 20px;
         }
         
-        .aggregate {
-          stroke: #000;
-          stroke-opacity: 0.5;
-          opacity: 0.99;
+        .HRG_Chapter {
+            opacity: 0.8;
+            stroke: #000;
+            stroke-width: 2px;
+            stroke-opacity: 0.75;
         }
         
         .HRG {
-          stroke: #f00;
-          stroke-opacity: 0.8;
-          opacity: 0.8;
-        }        
+            opacity: 0.85;
+            stroke: #222;
+            stroke-width: 1px;
+            stroke-opacity: 0.9;
+            stroke-dasharray: 5, 5;
+        }
     </style>
 </head>
 
@@ -51,7 +54,7 @@
 
     <nav class="navbar navbar-fixed-top navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="index.html">Gapminder</a>
+            <a class="navbar-brand" href="index.html">Emg Casemix</a>
             <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#CollapsingNavbar" aria-controls="CollapsingNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 &#9776;
             </button>
@@ -74,10 +77,10 @@
             </h3>
                 <p>Can display 5 variables (x, y, r, time, colour). <i>Click circle to expand</i></p>
             </div>
-        <div id="controls">
-            <button id="explode">Explode All</button>
-            <button id="collapse">Collapse All</button>
-        </div>            
+            <div id="controls">
+                <button id="explode">Explode All</button>
+                <button id="collapse">Collapse All</button>
+            </div>
         </div>
 
         <div class='row'>
@@ -86,8 +89,6 @@
                 </svg> -->
             </div>
         </div>
-
-
 
         <script>
             var years = d3.range(2015, 2015 + 1) //1950, 2015 + 1
@@ -123,6 +124,9 @@
             var color = d3.scaleOrdinal(d3.schemeCategory20)
                 //.range(['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#e6ab02', '#666666'])
 
+            //.domain(["A", "B", "C", "D", "E", "F"])
+            //.range(["rgb(55, 126, 184)", "rgb(152, 78, 163)", "rgb(77, 175, 74)","rgb(255, 255, 51)", "rgb(255, 127, 0)", "rgb(228, 26, 28)"])
+
             var xAxis = d3.axisBottom().scale(x)
             var yAxis = d3.axisLeft().scale(y)
 
@@ -139,8 +143,8 @@
 
             d3.csv('data/Gapminder_DummyData.csv', function(d) {
                 return {
-                    Year: d.Year,                    
-                    HRG_Chapter: d.HRG_Chapter,                  
+                    Year: d.Year,
+                    HRG_Chapter: d.HRG_Chapter,
                     HRG: d.HRG,
                     Unit_Cost: +d.Unit_Cost,
                     Activity: +d.Activity,
@@ -152,16 +156,27 @@
                 if (error) {
                     throw error
                 }
-//console.log(data[0]);
-                x.domain([0, d3.max(data, function(d) {
-                    return d.Activity
-                })]).nice()
-                y.domain([0, d3.max(data, function(d) {
-                    return d.Unit_Cost
-                })]).nice()
-                r.domain([0, d3.max(data, function(d) {
-                    return d.Total_Cost
-                })])
+                //console.log(data[0])
+
+                /*
+                //Attempt to determine max value for x-axis
+                var subData = d3.nest()
+                    .key(function(d) {
+                        return d.Year
+                    })
+                    .key(function(d) {
+                        return d.HRG_Chapter
+                    })
+                    .rollup(function(g) { 
+                        return d3.sum(g, function(d) {return d.Activity; }); })
+                    .entries(data);
+
+                   // console.log(subData)
+                 */
+
+                x.domain([0, 5000]).nice() // need to automate this?
+                y.domain([0, 8000000]).nice() //d3.max(data, function(d) { return d.Total_Cost })]).nice()
+                r.domain([0, 8000000]).nice() //d3.max(data, function(d) { return d.Unit_Cost })])
 
                 data = d3.nest()
                     .key(function(d) {
@@ -181,7 +196,7 @@
                             return f.Activity
                         })
                         e.Unit_Cost = d3.sum(e.values, function(f) {
-                            return f.Total_Cost 
+                            return f.Total_Cost
                         }) / e.Activity
                         e.values.forEach(function(f) {
                             f.parent = e
@@ -189,15 +204,15 @@
                     })
                 })
 
-                var uniqueHRGs = data[0].values.map(function(d) {
-                    return d.key
-                })
-
-                // from http://www.visualcinnamon.com/2016/06/fun-data-visualizations-svg-gooey-effect.html
-                // modified to create a filter for each continent group, which can be individually transitioned
+                var uniqueHRG_Cs = data[0].values.map(function(d) {
+                        return d.key
+                    })
+                    //console.log(uniqueHRG_Cs)
+                    // from http://www.visualcinnamon.com/2016/06/fun-data-visualizations-svg-gooey-effect.html
+                    // modified to create a filter for each continent group, which can be individually transitioned
                 var filters = svg.append('defs')
                     .selectAll('filter')
-                    .data(uniqueHRGs)
+                    .data(uniqueHRG_Cs)
                     .enter().append('filter')
                     .attr('id', function(d) {
                         return 'gooeyCodeFilter-' + d.replace(' ', '-')
@@ -240,7 +255,7 @@
                     .attr('y', -30)
                     .style('text-anchor', 'end')
                     .style('font-weight', 'bold')
-                    .text('Unit Cost')
+                    .text('Total Cost')
 
                 var yearIndex = 0
                 var Year = '' + years[yearIndex]
@@ -248,7 +263,7 @@
                 var blurTransition = d3.set()
 
                 d3.select('#explode').on('click', function() {
-                    uniqueHRGs.forEach(function(d) {
+                    uniqueHRG_Cs.forEach(function(d) {
                         if (!exploded.has(d)) {
                             exploded.add(d)
                             blurTransition.add(d)
@@ -257,7 +272,7 @@
                 })
 
                 d3.select('#collapse').on('click', function() {
-                    uniqueHRGs.forEach(function(d) {
+                    uniqueHRG_Cs.forEach(function(d) {
                         if (exploded.has(d)) {
                             exploded.remove(d)
                             blurTransition.add(d)
@@ -277,18 +292,15 @@
                     .attr('class', 'aggregate')
                     .attr('cx', width / 2)
                     .attr('cy', height / 2)
-                    .style('fill', function(d) {
-                        return color(d.key)
-                    })
+                    //.style('fill', function(d) {
+                    //    return color(d.key)
+                    //})
                     .on('click', function(d) {
                         exploded.add(d.key);
                         blurTransition.add(d.HRG_Chapter)
                     })
                     .append('title').text(function(d) {
-                        return d.key + '\n' 
-                            + formatNumber(d.Activity) + '\n'
-                            + '£' + formatNumber(d.Unit_Cost) + '\n'
-                            + '£' + formatNumber(d.Total_Cost)
+                        return d.key + '\n' + formatNumber(d.Activity) + '\n' + '£' + formatNumber(d.Unit_Cost) + '\n' + '£' + formatNumber(d.Total_Cost)
                     })
 
                 update()
@@ -323,19 +335,15 @@
                         .attr('class', 'HRG')
                         .attr('cx', width / 2)
                         .attr('cy', height / 2)
-                        .style('fill', function(d) {
-                            return color(d.HRG_Chapter)
-                        })
+                        //.style('fill', function(d) {
+                        //    return color(d.HRG_Chapter)
+                        //})                         
                         .on('click', function(d) {
                             exploded.remove(d.HRG_Chapter);
                             blurTransition.add(d.HRG_Chapter)
                         })
-
                     enterHRGs.append('title').text(function(d) {
-                        return  d.HRG + '\n' 
-                            + formatNumber(d.Activity) + '\n'
-                            + '£' + formatNumber(d.Unit_Cost) + '\n'
-                            + '£' + formatNumber(d.Total_Cost)
+                        return d.HRG + '\n' + formatNumber(d.Activity) + '\n' + '£' + formatNumber(d.Unit_Cost) + '\n' + '£' + formatNumber(d.Total_Cost)
                     })
 
                     HRGs = HRGs.merge(enterHRGs)
@@ -353,8 +361,14 @@
                             return x(d.Activity)
                         })
                         .attr('cy', function(d) {
-                            return y(d.Unit_Cost)
+                            return y(d.Total_Cost)
                         })
+                        .style('fill', function(d) {
+                            return color(d.key)
+                        })
+                        //.style('stroke', function(d) {
+                        //    return color(d.key)
+                        //})
 
                     HRGs
                         .transition(t)
@@ -365,8 +379,14 @@
                             return x((exploded.has(d.HRG_Chapter) ? d : d.parent).Activity)
                         })
                         .attr('cy', function(d) {
-                            return y((exploded.has(d.HRG_Chapter) ? d : d.parent).Unit_Cost)
+                            return y((exploded.has(d.HRG_Chapter) ? d : d.parent).Total_Cost)
                         })
+                        .style('fill', function(d) {
+                            return color(d.HRG_Chapter)
+                        })
+                        //.style('stroke', function(d) {
+                        //    return color(d.HRG_Chapter)
+                        //})
 
                     blurValues
                         .transition(t)
@@ -385,27 +405,28 @@
                                 return blurStable
                             }
                         })
-                        
-                        
-                HRG_Chapters.on("mouseover", function(d) {
-                    d3.select(this).style("stroke", "#00f").style("stroke-width", 3)
-                })
-    
-                HRG_Chapters.on("mouseout", function(d) {
-                    d3.select(this).style("stroke", "").style("stroke-width", "")
-                })  
 
+                    HRG_Chapters.on("mouseover", function(d) {
+                        d3.select(this)
+                            .style("stroke", "yellow")
+                            .style("stroke-width", "5px")
+                    }).on("mouseout", function(d) {
+                        d3.select(this)
+                            .style("stroke", "")
+                            .style("stroke-width", "")
+                    })
 
-                                HRGs.on("mouseover", function(d) {
-                    d3.select(this).style("stroke", "yellow").style("stroke-width", 3)
-                })
-    
-                HRGs.on("mouseout", function(d) {
-                    d3.select(this).style("stroke", "").style("stroke-width", "")
-                }) 
+                    HRGs.on("mouseover", function(d) {
+                        d3.select(this)
+                            .style("stroke", "yellow")
+                            .style("stroke-width", "3px")
+                    }).on("mouseout", function(d) {
+                        d3.select(this)
+                            .style("stroke", "")
+                            .style("stroke-width", "")
+                    })
+
                 }
-                
-                
             }
         </script>
         <H5>
