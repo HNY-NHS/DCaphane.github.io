@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="icon" href="img/voyccg.png">
-    <title>Tab Title</title>
+    <title>IP Scatter</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.6/d3.min.js" integrity="sha256-5idA201uSwHAROtCops7codXJ0vja+6wbBrZdQ6ETQc=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
@@ -18,15 +18,30 @@
             fill: #333;
         }
         
-        text.year {
+        text.Year {
             font-family: monospace;
             pointer-events: none;
         }
         
         #controls {
-            position: absolute;
-            top: 160px;
-            right: 400px;
+            position: relative;
+            top: 0px;
+            left: 20px;
+        }
+        
+        .HRG_Chapter {
+            opacity: 0.8;
+            stroke: #000;
+            stroke-width: 2px;
+            stroke-opacity: 0.75;
+        }
+        
+        .HRG {
+            opacity: 0.85;
+            stroke: #222;
+            stroke-width: 1px;
+            stroke-opacity: 0.9;
+            stroke-dasharray: 5, 5;
         }
     </style>
 </head>
@@ -39,7 +54,7 @@
 
     <nav class="navbar navbar-fixed-top navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="index.html">Gapminder</a>
+            <a class="navbar-brand" href="index.html">Emg Casemix</a>
             <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#CollapsingNavbar" aria-controls="CollapsingNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 &#9776;
             </button>
@@ -58,9 +73,13 @@
     <div class="container" style='font: 12px sans-serif;'>
         <div class='row'>
             <div class='col-xs-12'>
-                <h3>Learning how to make an interactive scatter
+                <h3>York Trust: Emergency Casemix, SUS: 2015/16
             </h3>
-                <p><i>HRG Casemix...</i></p>
+                <p>Can display 5 variables (x, y, r, time, colour). <i>Click circle to expand</i></p>
+            </div>
+            <div id="controls">
+                <button id="explode">Explode All</button>
+                <button id="collapse">Collapse All</button>
             </div>
         </div>
 
@@ -71,14 +90,10 @@
             </div>
         </div>
 
-        <div id="controls">
-            <button id="explode">Explode All</button>
-            <button id="collapse">Collapse All</button>
-        </div>
-
         <script>
-            var years = d3.range(1950, 2015 + 1)
+            var years = d3.range(2015, 2015 + 1) //1950, 2015 + 1
             var interval = 500
+            var formatNumber = d3.format(",d")
 
             var blurStable = '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 5 -7'
             var blurIn = '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 35 -11'
@@ -106,14 +121,17 @@
             var x = d3.scaleLinear().range([0, width])
             var y = d3.scaleLinear().range([height, 0])
             var r = d3.scaleSqrt().range([0, 50])
-            var color = d3.scaleOrdinal()
-                .range(['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#e6ab02', '#666666'])
+            var color = d3.scaleOrdinal(d3.schemeCategory20)
+                //.range(['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#e6ab02', '#666666'])
+
+            //.domain(["A", "B", "C", "D", "E", "F"])
+            //.range(["rgb(55, 126, 184)", "rgb(152, 78, 163)", "rgb(77, 175, 74)","rgb(255, 255, 51)", "rgb(255, 127, 0)", "rgb(228, 26, 28)"])
 
             var xAxis = d3.axisBottom().scale(x)
             var yAxis = d3.axisLeft().scale(y)
 
-            var yearLabel = svg.append('text')
-                .attr('class', 'year')
+            /*var yearLabel = svg.append('text')
+                .attr('class', 'Year')
                 .attr('x', width / 2)
                 .attr('y', height / 2)
                 .attr('dy', '.28em')
@@ -121,69 +139,80 @@
                 .style('text-anchor', 'middle')
                 .style('font-weight', 'bold')
                 .style('opacity', 0.2)
-                .text('1950')
+                .text('1950')*/
 
-            d3.csv('data/Gapminder_Data.csv', function(d) {
+            d3.csv('data/Gapminder_DummyData.csv', function(d) {
                 return {
-                    country: d.country,
-                    year: d.year,
-                    life_expectancy: +d.life_expectancy,
-                    total_fertility: +d.total_fertility,
-                    population: +d.population,
-                    continent: d.continent
-                }
+                    Year: d.Year,
+                    HRG_Chapter: d.HRG_Chapter,
+                    HRG: d.HRG,
+                    Unit_Cost: +d.Unit_Cost,
+                    Activity: +d.Activity,
+                    Total_Cost: +d.Total_Cost
+                };
             }, initialize)
 
             function initialize(error, data) {
                 if (error) {
                     throw error
                 }
+                //console.log(data[0])
 
-                x.domain([0, d3.max(data, function(d) {
-                    return d.total_fertility
-                })]).nice()
-                y.domain([0, d3.max(data, function(d) {
-                    return d.life_expectancy
-                })]).nice()
-                r.domain([0, d3.max(data, function(d) {
-                    return d.population
-                })])
+                /*
+                //Attempt to determine max value for x-axis
+                var subData = d3.nest()
+                    .key(function(d) {
+                        return d.Year
+                    })
+                    .key(function(d) {
+                        return d.HRG_Chapter
+                    })
+                    .rollup(function(g) { 
+                        return d3.sum(g, function(d) {return d.Activity; }); })
+                    .entries(data);
+
+                   // console.log(subData)
+                 */
+
+                x.domain([0, 5000]).nice() // need to automate this?
+                y.domain([0, 8000000]).nice() //d3.max(data, function(d) { return d.Total_Cost })]).nice()
+                r.domain([0, 8000000]).nice() //d3.max(data, function(d) { return d.Unit_Cost })])
 
                 data = d3.nest()
                     .key(function(d) {
-                        return d.year
+                        return d.Year
                     })
                     .key(function(d) {
-                        return d.continent
+                        return d.HRG_Chapter
                     })
                     .entries(data)
 
                 data.forEach(function(d) {
                     d.values.forEach(function(e) {
-                        e.population = d3.sum(e.values, function(f) {
-                            return f.population
+                        e.Total_Cost = d3.sum(e.values, function(f) {
+                            return f.Total_Cost
                         })
-                        e.total_fertility = d3.sum(e.values, function(f) {
-                            return f.population * f.total_fertility
-                        }) / e.population
-                        e.life_expectancy = d3.sum(e.values, function(f) {
-                            return f.population * f.life_expectancy
-                        }) / e.population
+                        e.Activity = d3.sum(e.values, function(f) {
+                            return f.Activity
+                        })
+                        e.Unit_Cost = d3.sum(e.values, function(f) {
+                            return f.Total_Cost
+                        }) / e.Activity
                         e.values.forEach(function(f) {
                             f.parent = e
                         })
                     })
                 })
 
-                var uniqueContinents = data[0].values.map(function(d) {
-                    return d.key
-                })
-
-                // from http://www.visualcinnamon.com/2016/06/fun-data-visualizations-svg-gooey-effect.html
-                // modified to create a filter for each continent group, which can be individually transitioned
+                var uniqueHRG_Cs = data[0].values.map(function(d) {
+                        return d.key
+                    })
+                    //console.log(uniqueHRG_Cs)
+                    // from http://www.visualcinnamon.com/2016/06/fun-data-visualizations-svg-gooey-effect.html
+                    // modified to create a filter for each continent group, which can be individually transitioned
                 var filters = svg.append('defs')
                     .selectAll('filter')
-                    .data(uniqueContinents)
+                    .data(uniqueHRG_Cs)
                     .enter().append('filter')
                     .attr('id', function(d) {
                         return 'gooeyCodeFilter-' + d.replace(' ', '-')
@@ -215,7 +244,7 @@
                     .attr('y', 30)
                     .style('text-anchor', 'end')
                     .style('font-weight', 'bold')
-                    .text('Fertility (births per woman)')
+                    .text('Activity')
 
                 svg.append('g')
                     .attr('class', 'y axis')
@@ -226,15 +255,15 @@
                     .attr('y', -30)
                     .style('text-anchor', 'end')
                     .style('font-weight', 'bold')
-                    .text('Life expectancy (years)')
+                    .text('Total Cost')
 
                 var yearIndex = 0
-                var year = '' + years[yearIndex]
+                var Year = '' + years[yearIndex]
                 var exploded = d3.set()
                 var blurTransition = d3.set()
 
                 d3.select('#explode').on('click', function() {
-                    uniqueContinents.forEach(function(d) {
+                    uniqueHRG_Cs.forEach(function(d) {
                         if (!exploded.has(d)) {
                             exploded.add(d)
                             blurTransition.add(d)
@@ -243,7 +272,7 @@
                 })
 
                 d3.select('#collapse').on('click', function() {
-                    uniqueContinents.forEach(function(d) {
+                    uniqueHRG_Cs.forEach(function(d) {
                         if (exploded.has(d)) {
                             exploded.remove(d)
                             blurTransition.add(d)
@@ -251,102 +280,113 @@
                     })
                 })
 
-                var continents = svg.selectAll('.continent')
+                var HRG_Chapters = svg.selectAll('.HRG_Chapter')
                     .data(data[0].values)
                     .enter().append('g')
-                    .attr('class', 'continent')
+                    .attr('class', 'HRG_Chapter')
                     .style('filter', function(d) {
                         return 'url(#gooeyCodeFilter-' + d.key.replace(' ', '-') + ')'
                     })
 
-                continents.append('circle')
+                HRG_Chapters.append('circle')
                     .attr('class', 'aggregate')
                     .attr('cx', width / 2)
                     .attr('cy', height / 2)
-                    .style('fill', function(d) {
-                        return color(d.key)
-                    })
+                    //.style('fill', function(d) {
+                    //    return color(d.key)
+                    //})
                     .on('click', function(d) {
                         exploded.add(d.key);
-                        blurTransition.add(d.continent)
+                        blurTransition.add(d.HRG_Chapter)
                     })
                     .append('title').text(function(d) {
-                        return d.key
+                        return d.key + '\n' + formatNumber(d.Activity) + '\n' + '£' + formatNumber(d.Unit_Cost) + '\n' + '£' + formatNumber(d.Total_Cost)
                     })
 
                 update()
                 d3.interval(incrementYear, interval)
 
                 function incrementYear() {
-                    year = '' + years[++yearIndex >= years.length ? yearIndex = 0 : yearIndex]
+                    Year = '' + years[++yearIndex >= years.length ? yearIndex = 0 : yearIndex]
                     update()
                 }
 
                 function update() {
-                    yearLabel.transition().duration(0).delay(interval / 2).text(year)
-                    continents = continents.data(
+                    //yearLabel.transition().duration(0).delay(interval / 2).text(Year)
+                    HRG_Chapters = HRG_Chapters.data(
                         data.find(function(d) {
-                            return d.key === year
+                            return d.key === Year
                         }).values,
                         function(d) {
                             return d.key
                         }
                     )
 
-                    var countries = continents.selectAll('.country')
+                    var HRGs = HRG_Chapters.selectAll('.HRG')
                         .data(function(d) {
                             return d.values
                         }, function(d) {
-                            return d.country
+                            return d.HRG
                         })
 
-                    countries.exit().remove()
+                    HRGs.exit().remove()
 
-                    var enterCountries = countries.enter().insert('circle', '.aggregate')
-                        .attr('class', 'country')
+                    var enterHRGs = HRGs.enter().insert('circle', '.aggregate')
+                        .attr('class', 'HRG')
                         .attr('cx', width / 2)
                         .attr('cy', height / 2)
-                        .style('fill', function(d) {
-                            return color(d.continent)
-                        })
+                        //.style('fill', function(d) {
+                        //    return color(d.HRG_Chapter)
+                        //})                         
                         .on('click', function(d) {
-                            exploded.remove(d.continent);
-                            blurTransition.add(d.continent)
+                            exploded.remove(d.HRG_Chapter);
+                            blurTransition.add(d.HRG_Chapter)
                         })
-
-                    enterCountries.append('title').text(function(d) {
-                        return d.country
+                    enterHRGs.append('title').text(function(d) {
+                        return d.HRG + '\n' + formatNumber(d.Activity) + '\n' + '£' + formatNumber(d.Unit_Cost) + '\n' + '£' + formatNumber(d.Total_Cost)
                     })
 
-                    countries = countries.merge(enterCountries)
+                    HRGs = HRGs.merge(enterHRGs)
 
                     var t = d3.transition()
                         .ease(d3.easeLinear)
                         .duration(interval)
 
-                    continents.select('.aggregate')
+                    HRG_Chapters.select('.aggregate')
                         .transition(t)
                         .attr('r', function(d) {
-                            return exploded.has(d.key) ? 0 : r(d.population)
+                            return exploded.has(d.key) ? 0 : r(d.Total_Cost)
                         })
                         .attr('cx', function(d) {
-                            return x(d.total_fertility)
+                            return x(d.Activity)
                         })
                         .attr('cy', function(d) {
-                            return y(d.life_expectancy)
+                            return y(d.Total_Cost)
                         })
+                        .style('fill', function(d) {
+                            return color(d.key)
+                        })
+                        //.style('stroke', function(d) {
+                        //    return color(d.key)
+                        //})
 
-                    countries
+                    HRGs
                         .transition(t)
                         .attr('r', function(d) {
-                            return r(d.population)
+                            return r(d.Total_Cost)
                         })
                         .attr('cx', function(d) {
-                            return x((exploded.has(d.continent) ? d : d.parent).total_fertility)
+                            return x((exploded.has(d.HRG_Chapter) ? d : d.parent).Activity)
                         })
                         .attr('cy', function(d) {
-                            return y((exploded.has(d.continent) ? d : d.parent).life_expectancy)
+                            return y((exploded.has(d.HRG_Chapter) ? d : d.parent).Total_Cost)
                         })
+                        .style('fill', function(d) {
+                            return color(d.HRG_Chapter)
+                        })
+                        //.style('stroke', function(d) {
+                        //    return color(d.HRG_Chapter)
+                        //})
 
                     blurValues
                         .transition(t)
@@ -365,6 +405,27 @@
                                 return blurStable
                             }
                         })
+
+                    HRG_Chapters.on("mouseover", function(d) {
+                        d3.select(this)
+                            .style("stroke", "yellow")
+                            .style("stroke-width", "5px")
+                    }).on("mouseout", function(d) {
+                        d3.select(this)
+                            .style("stroke", "")
+                            .style("stroke-width", "")
+                    })
+
+                    HRGs.on("mouseover", function(d) {
+                        d3.select(this)
+                            .style("stroke", "yellow")
+                            .style("stroke-width", "3px")
+                    }).on("mouseout", function(d) {
+                        d3.select(this)
+                            .style("stroke", "")
+                            .style("stroke-width", "")
+                    })
+
                 }
             }
         </script>
