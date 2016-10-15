@@ -54,7 +54,7 @@
 
     <nav class="navbar navbar-fixed-top navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="index.html">Emg Casemix</a>
+            <a class="navbar-brand" href="Gapminder.html">Emg Casemix</a>
             <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#CollapsingNavbar" aria-controls="CollapsingNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 &#9776;
             </button>
@@ -75,7 +75,7 @@
             <div class='col-xs-12'>
                 <h3>York Trust: Emergency Casemix, SUS: 2015/16
             </h3>
-                <p>Can display 5 variables (x, y, r, time, colour). <i>Click circle to expand</i></p>
+                <p>Can display 5 variables (x, y, r, time, colour). <i>Click circle to explode</i></p>
             </div>
             <div id="controls">
                 <button id="explode">Explode All</button>
@@ -101,8 +101,8 @@
 
             var margin = {
                 top: 15,
-                right: 15,
-                bottom: 100,
+                right: 20,
+                bottom: 120,
                 left: 55
             }
             var width = 960 - margin.left - margin.right
@@ -114,7 +114,7 @@
                 .attr("viewBox", "0 0 " + width + " " + height)
                 .attr("preserveAspectRatio", "xMidYMid")
                 .attr('width', width + margin.left + margin.top)
-                .attr('height', height + margin.top + margin.bottom)
+                .attr('height', height + margin.top + margin.bottom + 10)
                 .append('g')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
@@ -127,8 +127,11 @@
             //.domain(["A", "B", "C", "D", "E", "F"])
             //.range(["rgb(55, 126, 184)", "rgb(152, 78, 163)", "rgb(77, 175, 74)","rgb(255, 255, 51)", "rgb(255, 127, 0)", "rgb(228, 26, 28)"])
 
-            var xAxis = d3.axisBottom().scale(x)
-            var yAxis = d3.axisLeft().scale(y)
+            var xAxis = d3.axisBottom()
+                .scale(x)
+            var yAxis = d3.axisLeft()
+                .scale(y)
+                .tickFormat(d3.formatPrefix(".1", 1e6))
 
             /*var yearLabel = svg.append('text')
                 .attr('class', 'Year')
@@ -156,27 +159,6 @@
                 if (error) {
                     throw error
                 }
-                //console.log(data[0])
-
-                /*
-                //Attempt to determine max value for x-axis
-                var subData = d3.nest()
-                    .key(function(d) {
-                        return d.Year
-                    })
-                    .key(function(d) {
-                        return d.HRG_Chapter
-                    })
-                    .rollup(function(g) { 
-                        return d3.sum(g, function(d) {return d.Activity; }); })
-                    .entries(data);
-
-                   // console.log(subData)
-                 */
-
-                x.domain([0, 5000]).nice() // need to automate this?
-                y.domain([0, 8000000]).nice() //d3.max(data, function(d) { return d.Total_Cost })]).nice()
-                r.domain([0, 8000000]).nice() //d3.max(data, function(d) { return d.Unit_Cost })])
 
                 data = d3.nest()
                     .key(function(d) {
@@ -204,12 +186,23 @@
                     })
                 })
 
+                x.domain([0, d3.max(data[0].values.map(function(d) {
+                    return d.Activity + 200 // otherwise cuts off point?
+                }))]).nice()
+                y.domain([0, d3.max(data[0].values.map(function(d) {
+                    return d.Total_Cost
+                }))]).nice()
+                r.domain([0, d3.max(data[0].values.map(function(d) {
+                    return d.Total_Cost
+                }))]).nice()
+
                 var uniqueHRG_Cs = data[0].values.map(function(d) {
                         return d.key
                     })
                     //console.log(uniqueHRG_Cs)
-                    // from http://www.visualcinnamon.com/2016/06/fun-data-visualizations-svg-gooey-effect.html
-                    // modified to create a filter for each continent group, which can be individually transitioned
+
+                // from http://www.visualcinnamon.com/2016/06/fun-data-visualizations-svg-gooey-effect.html
+                // modified to create a filter for each continent group, which can be individually transitioned
                 var filters = svg.append('defs')
                     .selectAll('filter')
                     .data(uniqueHRG_Cs)
@@ -240,7 +233,7 @@
                     .attr('transform', 'translate(0,' + height + ')')
                     .call(xAxis)
                     .append('text')
-                    .attr('x', width)
+                    .attr('x', width / 2)
                     .attr('y', 30)
                     .style('text-anchor', 'end')
                     .style('font-weight', 'bold')
@@ -251,11 +244,11 @@
                     .call(yAxis)
                     .append('text')
                     .attr('transform', 'rotate(-90)')
-                    .attr('x', 0)
-                    .attr('y', -30)
+                    .attr('x', -height / 2 + 30)
+                    .attr('y', -35)
                     .style('text-anchor', 'end')
                     .style('font-weight', 'bold')
-                    .text('Total Cost')
+                    .text('Total Cost (£)')
 
                 var yearIndex = 0
                 var Year = '' + years[yearIndex]
@@ -425,7 +418,6 @@
                             .style("stroke", "")
                             .style("stroke-width", "")
                     })
-
                 }
             }
         </script>
