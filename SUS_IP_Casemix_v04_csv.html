@@ -288,7 +288,7 @@
                         })
                         .style("opacity", function(d) {
                             d.w = this.getComputedTextLength();
-                            return d.dx > d.w * .30 ? 1 : 0;
+                            return d.dx > d.w * .30 ? 1 : 0.4;
                         })
                         .call(text);
 
