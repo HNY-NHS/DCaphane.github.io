@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <link rel='icon' href='img/voyccg.png'>
+    <title>Colours</title>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.6/d3.min.js' integrity='sha256-5idA201uSwHAROtCops7codXJ0vja+6wbBrZdQ6ETQc=' crossorigin='anonymous'></script>
+    <script src='https://d3js.org/d3-scale-chromatic.v1.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.8.0-alpha.1/d3-tip.min.js' integrity='sha256-57pdU/+Z7kiEW2KgS2d0T8A9iGEP4dE4amG51LJcCI4=' crossorigin='anonymous'></script>
+
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css' integrity='sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj' crossorigin='anonymous'>
+    <link href='css/jumbotron.css' rel='stylesheet'>
+
+    <style>
+        text {
+            font-family: sans-serif;
+            font-size: 0.75em;
+            fill: #f00;
+        }
+        
+        .circle {
+            //opacity: 0.8;
+            stroke: #000;
+            stroke-width: 1px;
+            stroke-opacity: 1;
+        }
+        
+        .circle_highlight {
+            //opacity: 0.8;
+            stroke: yellow;
+            stroke-width: 3px;
+            stroke-opacity: 0.75;
+        }
+        
+        
+        .buttons {
+          position: relative;
+          top: 10%;
+          left: 1%;
+        }
+
+        .buttons label {
+          margin-left: 20px;
+        }        
+        
+        .d3-tip {
+            line-height: 1;
+            font-weight: bold;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border-radius: 1px;
+        }
+        
+        /* Creates a small triangle extender for the tooltip */
+        .d3-tip:after {
+            box-sizing: border-box;
+            display: inline;
+            font-size: 10px;
+            width: 100%;
+            line-height: 1;
+            color: rgba(0, 0, 0, 0.8);
+            content: '\25BC';
+            position: absolute;
+            text-align: center;
+        }
+       
+        /* Style northward tooltips differently */
+        .d3-tip.n:after {
+            margin: -1px 0 0 0;
+            top: 100%;
+            left: 0;
+        }
+        
+        
+/* For chart example 10
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: url(#temperature-gradient);
+  stroke-width: 1.5px;
+}        
+        
+    </style>
+</head>
+
+<body>
+
+    <div id='preloader'>
+        <div id='status'>&nbsp;</div>
+    </div>
+
+    <nav class='navbar navbar-fixed-top navbar-dark bg-primary'>
+        <div class='container'>
+            <a class='navbar-brand' href='Index.html'>Colours</a>
+            <button class='navbar-toggler hidden-sm-up' type='button' data-toggle='collapse' data-target='#CollapsingNavbar' aria-controls='CollapsingNavbar' aria-expanded='false' aria-label='Toggle navigation'>
+                &#9776;
+            </button>
+
+            <div class='collapse navbar-toggleable-xs' id='CollapsingNavbar'>
+
+                <div class='nav navbar-nav'>
+                    <a class='nav-item nav-link' href='Index.html'>Home <span class='sr-only'>(current)</span></a>
+                    <a class='nav-item nav-link' href='About.html'>About</a>
+                    <a class='nav-item nav-link' href='Contacts.html'>Contacts</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class='container' style='font: 12px sans-serif;'>
+        <div class='row col-xs-12'>
+            <h3>Understanding D3 Colours</h3>
+        </div>
+
+        <div class='row col-xs-12'>
+            <h5>Ordinal (Categorical) Scales</h5>
+        </div>
+        <div class='row col-xs-12'>
+            <div id='img_Colour_01'>
+                <p>eg. schemeCategory20. Notice the repeats after 20</p>
+            </div>
+            <div id='img_Colour_02'>
+                <p>For more than 20, can use direct mapping.<a href='http://jnnnnn.blogspot.co.uk/2015/10/selecting-different-colours-for.html'>Category Color Generator</a></p>
+            </div>
+            </br>
+        </div>
+        <div class='row col-xs-12'>
+            <h5>Quantitative (Continuous) Scales</h5>
+
+            <div id='img_Colour_03'>
+                <p>Colour then interpolates between these values</p>            
+                <p>First value (0) is red, mid-point (13) is green and last point (25) is blue</p>
+            </div>
+            <div id='img_Colour_04'>
+                <p>Single colour but change one variable eg. transparency</p>
+            </div>
+            
+            <h5>Sequential Scales</h5>
+            <div id='img_Colour_05'>
+                <p>Diverging eg. <a href='https://github.com/d3/d3-scale-chromatic#interpolateBrBG'> Rainbow</a>, Single and Multi-Hues</p>
+            </div>
+            
+            <div id='img_Colour_06'>
+                <p>Various other <a href='https://github.com/d3/d3-scale/blob/master/README.md#interpolateViridis'>Colour Scales available</a></p>
+            </div>
+            
+            <h5>Threshold Scales</h5>
+            <div id='img_Colour_07'>
+                <p>Enables step changes ie. 0-4, 5-9, 10-14, 15-19, 20-24, 25+. See <a href='https://github.com/d3/d3-scale/blob/master/README.md#scaleThreshold'>reference</a></p>
+            </div>
+            
+            <h5>Transistions</h5>            
+            <div id='img_Colour_08'>
+                <p>The life of a <a href='https://bost.ocks.org/mike/transition/#life-cycle'>transition</a>. On click event...</p>
+                <div class='buttons'>
+                    <button class='button btn_tgl'>Toggle</button>
+                </div>
+            </div>
+            
+            <h5>Colour Gradients</h5>
+            <div id='img_Colour_09'>
+                <p>Mozilla Developer Network (MDN) <a href='https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Gradients'>Reference</a></p>
+                <p>Good <a href='http://www.visualcinnamon.com/2016/05/smooth-color-legend-d3-svg-gradient.html'>Reference Here</a></p>
+            </div>
+            
+            <h5>Chart Demo</h5>
+            <div id='img_Colour_10'>
+                <p>Gradient Encoding <a href='https://bl.ocks.org/mbostock/3969722'>Example</a></p>
+            </div>
+        </div>
+
+        <script>
+            var margin = {
+                    top: 5,
+                    right: 0,
+                    bottom: 5,
+                    left: 20
+                },
+                width = 900 - margin.left - margin.right,
+                height = 80 - margin.top - margin.bottom,
+                defaultRadius = 15,
+                formatNumber = d3.format(',.2f');
+
+            var svg_01 = d3.select('#img_Colour_01').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            var svg_02 = d3.select('#img_Colour_02').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            var svg_03 = d3.select('#img_Colour_03').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            var svg_04 = d3.select('#img_Colour_04').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                
+            var svg_05 = d3.select('#img_Colour_05').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            var svg_06 = d3.select('#img_Colour_06').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            var svg_07 = d3.select('#img_Colour_07').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
+
+            var svg_08 = d3.select('#img_Colour_08').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (20 + height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
+
+            var svg_09 = d3.select('#img_Colour_09').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
+
+            var svg_10 = d3.select('#img_Colour_10').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + ((height * 3.5) + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');                 
+                
+            // testing tooltip alternative
+            var colour_01 = d3.scaleOrdinal(d3.schemeCategory20); // d3.schemeAccent
+            var tip = d3.tip()
+                .attr('class', 'd3-tip')
+                .offset([-10, 0])
+                .html(function(d, i) {
+                    return '<strong>' + d.Letter + ':</strong> <span style="color:red">' + d3.rgb(colour_01(i)) + '</span>';
+                });
+
+            svg_01.call(tip);
+            ////////////////////////////////
+            
+            d3.csv('data/ColourData.csv', function(error, colour_data) {
+                if (error) throw error;
+
+                colour_data.forEach(function(d) {
+                    d.rnd_var = +d.Rnd_Var;
+                });
+                //console.log(colour_data)
+                var length = colour_data.length
+
+                // Example 01            
+
+                /* Define the data for the circles */
+                var elem = svg_01.selectAll('g')
+                    .data(colour_data)
+
+                /*Create and place the 'blocks' containing the circle and the text */
+                var elemEnter = elem.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) {
+                        return 'translate(' + width / length * i + ',' + height / 2 + ')'
+                    })
+
+                /*Create the circle for each block */
+                var circle = elemEnter.append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', defaultRadius)
+                    .style('fill', function(d, i) {
+                        return colour_01(i);
+                    })
+                    .on('mouseover', tip.show,
+                        function(d) {
+                            d3.select(this)
+                                .attr('class', 'circle_highlight')
+                        }).on('mouseout', tip.hide,
+                        function(d) {
+                            d3.select(this)
+                                .attr('class', 'circle')
+                        });
+
+                /* Create the text for each block */
+                elemEnter.append('text')
+                    .attr('dx', -4)
+                    .attr('dy', -20)
+                    .text(function(d) {
+                        return d.Letter
+                    });
+
+                /* Tooltip
+                elemEnter.append('title')
+                    .text(function(d, i) {
+                        return d.Letter + '\n' + colour_01(i);
+                    }); */
+
+                // Example 02            
+                var colour_02 = d3.scaleOrdinal()
+                    .domain(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'])
+                    //.domain([colour_data.map(function(d) {return d.Letter; })])
+                    .range(['#030139', '#1eff06', '#fe8504', '#1ff7fe', '#f701ff', '#2e4a02', '#ffaad5', '#f1ff8d', '#116aff', '#700111', '#1586c3', '#ff067d', '#0e02fb', '#1bffa1', '#921e8f', '#c49565', '#fd0128', '#4ea105', '#158279', '#c8fe0a', '#fdcc0b', '#834969', '#ff7673', '#05018b', '#c591fe', '#a6d8ab']);
+
+                /* Define the data for the circles */
+                var elem = svg_02.selectAll('g')
+                    .data(colour_data)
+
+                /*Create and place the 'blocks' containing the circle and the text */
+                var elemEnter = elem.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) {
+                        return 'translate(' + width / length * i + ',' + height / 2 + ')'
+                    })
+
+                /*Create the circle for each block */
+                var circle = elemEnter.append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', defaultRadius) // // function(d) { return Math.sqrt(d.Rnd_Var); }
+                    .style('fill', function(d, i) {
+                        return colour_02(d.Letter);
+                    })
+                    .on('mouseover', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle_highlight')
+                    }).on('mouseout', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle')
+                    });
+
+                /* Create the text for each block */
+                elemEnter.append('text')
+                    .attr('dx', -4)
+                    .attr('dy', -20)
+                    .text(function(d) {
+                        return d.Letter
+                    });
+
+                /* Tooltip */
+                elemEnter.append('title')
+                    .text(function(d, i) {
+                        return d.Letter + '\n' + colour_02(d.Letter) + '\n' + d3.rgb(colour_02(d.Letter));
+                    });
+
+                // Example 03          
+                var colour_03 = d3.scaleLinear()
+                    .domain([0, length / 2, length - 1])
+                    .range(['#f00', '#0f0', '#00f']);
+
+                /* Define the data for the circles */
+                var elem = svg_03.selectAll('g')
+                    .data(colour_data)
+
+                /*Create and place the 'blocks' containing the circle and the text */
+                var elemEnter = elem.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) {
+                        return 'translate(' + width / length * i + ',' + height / 2 + ')'
+                    })
+
+                /*Create the circle for each block */
+                var circle = elemEnter.append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', defaultRadius) // // function(d) { return Math.sqrt(d.Rnd_Var); }
+                    .style('fill', function(d, i) {
+                        return colour_03(i);
+                    })
+                    .on('mouseover', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle_highlight')
+                    }).on('mouseout', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle')
+                    });
+
+                /* Create the text for each block */
+                elemEnter.append('text')
+                    .attr('dx', -4)
+                    .attr('dy', -20)
+                    .text(function(d, i) {
+                        return i
+                    });
+
+                /* Tooltip */
+                elemEnter.append('title')
+                    .text(function(d, i) {
+                        return i + '\n' + colour_03(i) + '\n';
+                    });
+
+                    
+                // Example 04
+                
+                /* Define the data for the circles */
+                var elem = svg_04.selectAll('g')
+                    .data(colour_data)
+
+                /*Create and place the 'blocks' containing the circle and the text */
+                var elemEnter = elem.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) {
+                        return 'translate(' + width / length * i + ',' + height / 2 + ')'
+                    })
+
+                /*Create the circle for each block */
+                var circle = elemEnter.append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', function(d) { return Math.sqrt(d.Rnd_Var) + 5; })
+                    .style('fill', function(d, i) {
+                        return 'rgba(0, 0, 255, ' + ((i + 1) / length) + ')';
+                    })
+                    .on('mouseover', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle_highlight')
+                    }).on('mouseout', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle')
+                    });
+
+                /* Create the text for each block */
+                elemEnter.append('text')
+                    .attr('dx', -4)
+                    .attr('dy', -20)
+                    .text(function(d, i) {
+                        return i
+                    });
+
+                /* Tooltip */
+                elemEnter.append('title')
+                    .text(function(d, i) {
+                        return i + '\n' + 'rgba(0, 0, 255, ' + formatNumber((i + 1) / length) + ')';
+                    });                    
+                    
+
+
+                // Example 05
+                var colour_05 = d3.scaleSequential(d3.interpolateRainbow);
+
+                /* Define the data for the circles */
+                var elem = svg_05.selectAll('g')
+                    .data(colour_data)
+
+                /*Create and place the 'blocks' containing the circle and the text */
+                var elemEnter = elem.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) {
+                        return 'translate(' + width / length * i + ',' + height / 2 + ')'
+                    })
+
+                /*Create the circle for each block */
+                var circle = elemEnter.append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', defaultRadius) // // function(d) { return Math.sqrt(d.Rnd_Var); }
+                    .style('fill', function(d, i) {
+                        return colour_05((i + 1) / length);
+                    })
+                    .on('mouseover', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle_highlight')
+                    }).on('mouseout', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle')
+                    });
+
+                /* Create the text for each block */
+                elemEnter.append('text')
+                    .attr('dx', -4)
+                    .attr('dy', -20)
+                    .text(function(d, i) {
+                        return i
+                    });
+
+                /* Tooltip */
+                elemEnter.append('title')
+                    .text(function(d, i) {
+                        return i + '\n' + colour_05(i);
+                    });
+
+
+                // Example 06
+                var colour_06 = d3.scaleSequential(d3.interpolatePlasma);
+
+                /* Define the data for the circles */
+                var elem = svg_06.selectAll('g')
+                    .data(colour_data)
+
+                /*Create and place the 'blocks' containing the circle and the text */
+                var elemEnter = elem.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) {
+                        return 'translate(' + width / length * i + ',' + height / 2 + ')'
+                    })
+
+                /*Create the circle for each block */
+                var circle = elemEnter.append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', defaultRadius) // // function(d) { return Math.sqrt(d.Rnd_Var); }
+                    .style('fill', function(d, i) {
+                        return colour_06((i + 1) / length);
+                    })
+                    .on('mouseover', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle_highlight')
+                    }).on('mouseout', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle')
+                    });
+
+                /* Create the text for each block */
+                elemEnter.append('text')
+                    .attr('dx', -4)
+                    .attr('dy', -20)
+                    .text(function(d, i) {
+                        return i
+                    });
+
+                /* Tooltip */
+                elemEnter.append('title')
+                    .text(function(d, i) {
+                        return i + '\n' + colour_06(i);
+                    });
+
+
+
+
+                // Example 07
+                var colour_07 = d3.scaleThreshold()
+                    .domain([5, 10, 15, 20, 25])
+                    .range(['#f2f0f7', '#dadaeb', '#bcbddc', '#9e9ac8', '#756bb1', '#54278f']);
+                ;
+
+                /* Define the data for the circles */
+                var elem = svg_07.selectAll('g')
+                    .data(colour_data)
+
+                /*Create and place the 'blocks' containing the circle and the text */
+                var elemEnter = elem.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) {
+                        return 'translate(' + width / length * i + ',' + height / 2 + ')'
+                    })
+
+                /*Create the circle for each block */
+                var circle = elemEnter.append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', defaultRadius) // // function(d) { return Math.sqrt(d.Rnd_Var); }
+                    .style('fill', function(d, i) {
+                        return colour_07(i);
+                    })
+                    .on('mouseover', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle_highlight')
+                    }).on('mouseout', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle')
+                    });
+
+                /* Create the text for each block */
+                elemEnter.append('text')
+                    .attr('dx', -4)
+                    .attr('dy', -20)
+                    .text(function(d, i) {
+                        return i
+                    });
+
+                /* Tooltip */
+                elemEnter.append('title')
+                    .text(function(d, i) {
+                        return i + '\n' + colour_07(i);
+                    });
+
+
+                // Example 09
+                var colour_09 = d3.scaleSequential(d3.interpolateRainbow);
+   
+                /* Define the data for the circles */
+                var elem = svg_09.selectAll('g')
+                    .data(colour_data)
+                   
+                                                            
+                /*Create and place the 'blocks' containing the circle and the text */
+                var elemEnter = elem.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) {
+                        return 'translate(' + width / length * i + ',' + height / 2 + ')'
+                    })
+
+                //http://bl.ocks.org/mbostock/1086421                
+                var gradientRadial = elemEnter.append('defs')
+                  .append('radialGradient')
+                    .attr('id', 'gradientR')
+                    .attr('cx', '0')
+                    .attr('cy', '0')
+                    .attr('r', '100%');
+                    
+                gradientRadial.append('stop')
+                    .attr('offset', '0%')
+                    .style('stop-color', 'white')
+                    .style('stop-opacity', 1);
+
+                gradientRadial.append('stop')
+                    .attr('offset', '100%')
+                    .style('stop-color', function(d, i) { return colour_09((i + 1) / length); })
+                    .style('stop-opacity', 1);                     
+                                   
+                    
+                /*Create the circle for each block */
+                var circle = elemEnter.append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', defaultRadius) // // function(d) { return Math.sqrt(d.Rnd_Var); }
+                    //.style('fill', function(d, i) {
+                    //    return "url(#gradientR" + i + ")";
+                    //})
+                    .style('fill', 'url(#gradientR)')
+                    //.on('mouseover', function(d) {
+                    //    d3.select(this)
+                    //        .attr('class', 'circle_highlight')
+                    //}).on('mouseout', function(d) {
+                    //    d3.select(this)
+                    //        .attr('class', 'circle')
+                    //});
+
+                /* Create the text for each block */
+                elemEnter.append('text')
+                    .attr('dx', -4)
+                    .attr('dy', -20)
+                    .text(function(d, i) {
+                        return i;
+                    });
+
+                /* Tooltip */
+                elemEnter.append('title')
+                    .text(function(d, i) {
+                        return i;
+                    });
+                    
+                    
+                // Example 08
+                // https://bl.ocks.org/mbostock/24bdd02df2a72866b0ec
+                var toggleReset = true,
+                    togglePosition = []; // create an array to store whether each item has been transitioned
+                
+                for(var i =0; i < length; i++) {
+                    togglePosition[i] = true;
+                };
+                
+                var colour_08 = d3.scaleSequential(d3.interpolateCool)
+                    .domain([0, length-1])
+                    ;
+
+                /* Define the data for the circles */
+                var elem = svg_08.selectAll('g')
+                    .data(colour_data)
+
+                /*Create and place the 'blocks' containing the circle and the text */
+                var elemEnter = elem.enter()
+                    .append('g')
+                    .attr('transform', function(d, i) {
+                        return 'translate(' + width / length * i + ',' + height / 2 + ')'
+                    })
+
+                /*Create the circle for each block */
+                var circle = elemEnter.append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', defaultRadius) // // function(d) { return Math.sqrt(d.Rnd_Var); }
+                    .style('fill', function(d, i) {
+                        return colour_08(i);
+                    })
+                    .on('click', transition)
+                    .on('mouseover', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle_highlight')
+                    }).on('mouseout', function(d) {
+                        d3.select(this)
+                            .attr('class', 'circle')
+                    });
+
+                /* Create the text for each block */
+                elemEnter.append('text')
+                    .attr('dx', -4)
+                    .attr('dy', -20)
+                    .text(function(d, i) {
+                        return d.Letter
+                    });
+
+                /* Tooltip */
+                elemEnter.append('title')
+                    .text(function(d, i) {
+                        return i + '\n' + colour_08(i);
+                    });
+                
+                // http://bl.ocks.org/Kcnarf/9e4813ba03ef34beac6e
+                function transition(d, i) {
+                    d3.select(this)
+                        .transition() // Conceived - scheduling a transition means defining a transition, ie. setting its properties.
+                        .delay(0) // Born - A transition starts based on its delay
+                        .duration(500) // Live -
+                        //console.log(togglePosition[i])                        
+                        .attr('transform', (togglePosition[i] = !togglePosition[i]) ? // toggle true / false
+                                'translate(0)' : // if true, then reset to original position (y defaults to 0)
+                                'translate(' + ((length / 2) - i) + ', ' + ((height / 2) - 5) + ')'   
+                            )                        
+                        .attr('r', togglePosition[i] ? 
+                                    defaultRadius : 
+                                    defaultRadius * 1.5 
+                            )
+                        .style('fill', togglePosition[i] ?
+                                    colour_08(i) :
+                                    colour_08(length - i)
+                            )     
+                        };
+                
+                
+                // need to understand how to make this function select only relevant div element
+                // have had to switch order of 8 and 9 to make this work
+                d3.select('.btn_tgl').on('click', function() {
+                  circle
+                      .transition()
+                      .delay(50)
+                      .duration(750)
+                        .attr('transform', (toggleReset = !toggleReset) ?
+                                'translate(0, 0)' : // if true, return to starting position
+                                function(d, i) { return 'translate(' + ((length / 2) - i) + ',' + ((height / 2) - 5) + ')';}
+                            )                        
+                        .attr('r', toggleReset ? 
+                                    defaultRadius : 
+                                    defaultRadius * 1.5 
+                            )
+                        .style('fill', toggleReset ?
+                                   function(d, i) { return colour_08(i); } :
+                                   function(d, i) { return colour_08(length - i); }
+                            )
+                        
+                        // reset all individual values
+                        for(var k = 0; k < length; k++) {
+                            togglePosition[k] = toggleReset
+                        };                            
+                            
+                        });
+
+
+
+
+                        
+
+
+                // Example 10
+
+                var x = d3.scalePoint()
+                    .domain(colour_data.map(function(d) {return d.Letter; }))
+                    //.domain(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'])
+                    .range([0, width - 50]);
+
+                var y = d3.scaleLinear()
+                    .domain([0, d3.max(colour_data, function(d) { return d.Rnd_Var; }) * 1.4 ])
+                    .range([height * 3, 0]);
+
+                var colorScale = d3.scaleLinear()
+                    .range(["#2c7bb6", "#00a6ca","#00ccbc","#90eb9d","#ffff8c","#f9d057","#f29e2e","#e76818","#d7191c"]);
+                    
+
+  svg_10.append("linearGradient")
+      .attr("id", "colour-gradient")
+      .attr("gradientUnits", "userSpaceOnUse")
+        // direction of gradient ie. Linear ([0,0] --> [0, 1]  [x0, y0] --> [x1, y1])
+      .attr("x1", 0).attr("y1", y(0))
+      .attr("x2", 0).attr("y2", y(100))
+    .selectAll("stop")
+      .data(colorScale.range() )
+    .enter().append("stop")
+      .attr("offset", function(d,i) { return i/(colorScale.range().length-1); })
+      .attr("stop-color", function(d) { return d; });                                      
+                                      
+                                      
+              // Add the X Axis
+              svg_10.append('g')
+                  .attr('transform', 'translate(0,' + (height * 3) + ')')
+                  .call(d3.axisBottom(x));
+
+              // Add the Y Axis
+              svg_10.append('g')
+                  .call(d3.axisLeft(y));
+                                      
+              svg_10.selectAll('circle')
+                  .data(colour_data)
+                .enter().append('circle')
+                  .attr('cx', function(d) { return x(d.Letter); })
+                  .attr('cy', function(d) { return y(d.Rnd_Var); })
+                  .attr('r', function(d) { return Math.sqrt(d.Rnd_Var) + 5; }) // defaultRadius
+                 .style('fill', 'url(#colour-gradient)')
+                 .style('stroke', 'black')
+                 .append('title')
+                    .text(function(d, i) { return d.Letter + '\n' + d.Rnd_Var; })
+                  
+                 ;                
+                
+
+
+
+
+                        
+            });
+        </script>
+        <H6>
+            Created using 
+            <a href='http://d3js.org/'>d3.js</a>
+         </H6>
+        <hr>
+        <footer>
+            <p>&copy; 2016 DCaph</p>
+        </footer>
+    </div>
+    <!-- /container -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js'></script>
+    <!-- Tether for Bootstrap -->
+    <script src='https://www.atlasestateagents.co.uk/javascript/tether.min.js'></script>
+    <!-- Include all compiled plugins (below) -->
+    <script src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js' integrity='sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU' crossorigin='anonymous'></script>
+
+    <!-- Preloader -->
+    <script>
+        $(window).on('load', function() { // makes sure the whole site is loaded 
+            $('#status').fadeOut(); // will first fade out the loading animation 
+            $('#preloader').delay(0).fadeOut('slow'); // will fade out the white DIV that covers the website. 
+            $('body').delay(0).css({
+                'overflow': 'visible'
+            });
+        })
+    </script>
+</body>
+
+</html>

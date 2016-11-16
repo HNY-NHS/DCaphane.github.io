@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <link rel='icon' href='img/voyccg.png'>
+    <title>A&E Attd</title>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.6/d3.min.js' integrity='sha256-5idA201uSwHAROtCops7codXJ0vja+6wbBrZdQ6ETQc=' crossorigin='anonymous'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.8.0-alpha.1/d3-tip.min.js' integrity='sha256-57pdU/+Z7kiEW2KgS2d0T8A9iGEP4dE4amG51LJcCI4=' crossorigin='anonymous'></script>
+    <script src='cht_template\cht_Heatmap.js'></script>
+    
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css' integrity='sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj' crossorigin='anonymous'>
+    <link href='css/jumbotron.css' rel='stylesheet'>
+
+    <style>
+        text {
+            font-family: sans-serif;
+            font-size: 0.75em;
+            fill: #AAAAAA;
+        }
+        
+        // html {
+        //    font-size: 62.5%;
+        //}
+        
+        .timeLabel,
+        .dayLabel {
+            font-size: 1.0em;
+            fill: #AAAAAA;
+            font-weight: 300;
+        }
+        
+        text.axis-workweek,
+        text.axis-worktime {
+            fill: #404040;
+            font-weight: 400;
+        }
+        
+        .title {
+            font-size: 1.2em;
+            fill: #4F4F4F;
+            font-weight: 300;
+        }
+        
+        .subtitle {
+            font-size: 1.0em;
+            fill: #AAAAAA;
+            font-weight: 300;
+        }
+        
+        .axis path,
+        .axis tick,
+        .axis line {
+            fill: none;
+            stroke: none;
+        }
+        
+        .legendTitle {
+            font-size: 1.0em;
+            fill: #4F4F4F;
+            font-weight: 300;
+        }
+
+        
+        .d3-tip {
+            line-height: 1;
+            font-weight: bold;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border-radius: 1px;
+        }
+        /* Creates a small triangle extender for the tooltip */
+        
+        .d3-tip:after {
+            box-sizing: border-box;
+            display: inline;
+            font-size: 1.0em;
+            width: 100%;
+            line-height: 1;
+            color: rgba(0, 0, 0, 0.8);
+            content: '\25BC';
+            position: absolute;
+            text-align: center;
+        }
+        /* Style northward tooltips differently */
+        
+        .d3-tip.n:after {
+            margin: -1px 0 0 0;
+            top: 100%;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id='preloader'>
+        <div id='status'>&nbsp;</div>
+    </div>
+
+    <nav class='navbar navbar-fixed-top navbar-dark bg-primary'>
+        <div class='container'>
+            <a class='navbar-brand' href='#'>A&E Trends</a>
+            <button class='navbar-toggler hidden-sm-up' type='button' data-toggle='collapse' data-target='#CollapsingNavbar' aria-controls='CollapsingNavbar' aria-expanded='false' aria-label='Toggle navigation'>
+                &#9776;
+            </button>
+
+            <div class='collapse navbar-toggleable-xs' id='CollapsingNavbar'>
+
+                <div class='nav navbar-nav'>
+                    <a class='nav-item nav-link' href='Index.html'>Home <span class='sr-only'>(current)</span></a>
+                    <a class='nav-item nav-link' href='About.html'>About</a>
+                    <a class='nav-item nav-link' href='Contacts.html'>Contacts</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class='container' style='font: 12px sans-serif;'>
+        <div class='row'>
+            <h3>A&E Overview</h3><br/>
+        </div>
+
+        <div class='row'>
+            <h5>A&E Attendances by Day and Hour</h5>
+            <div id='AE_Attendances'></div>
+        </div>
+    
+        <div class='row'>
+            <h5>A&E Breaches by Day and Breach Hour</h5>
+            <div id='AE_Breaches'></div>
+        </div>        
+
+        <div class='row'>
+            <h5>A&E Admits by Day and Hour</h5>
+            <div id='AE_Admit'></div>
+        </div>
+    
+
+        <div class='row'>
+            <h5>GP Admits by Day and Hour</h5>
+            <div id='GP_Admit'></div>
+        </div> 
+
+        
+
+        <script>
+            
+            // aim to move this into function - issue is defining g dimensions //
+            var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                times = d3.range(24);        
+        
+            var margin = { top: 30, right: 50, bottom: 70, left: 50 };
+                
+            var width = Math.max(Math.min(window.innerWidth, 1000), 500) - margin.left - margin.right - 20,
+                gridSize = Math.floor(width / times.length),
+                height = gridSize * (days.length + 2) - 50;  
+            /////////////////////////////////////////////////////////////////////
+            
+            
+            // similarly, can append svg and view box attr be moved within function? ////////
+            var g = d3.select('#AE_Attendances').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            var g2 = d3.select('#AE_Breaches').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                
+            var g3 = d3.select('#AE_Admit').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                
+            var g4 = d3.select('#GP_Admit').append('svg')
+                .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                                
+             
+            /////////////////////////////////////////////////////////////////////
+
+            //Reset the overall font size
+            //var newFontSize = width * 62.5 / 900;
+            //d3.select('html').style('font-size', newFontSize + '%');
+
+            d3.csv('data/Unplanned_Heatmap.csv', function(error, data) {
+                if (error) throw error;
+
+                data.forEach(function(d) {
+                    d.day = +d.Day,
+                        d.hour = +d.Hour,
+                        d.count = +d.Count;
+                });
+                // console.log(data)
+
+                //Filter data as appropriate
+                    //var AE_Attd_Data = data.filter(function(d) {
+                    //    return d.Type === 'AE_Attd';
+                    //});
+                    // console.log(AE_Attd_Data)             
+
+                //Based on the heatmap example of: http://blockbuilder.org/milroc/7014412
+                //https://vimeo.com/53764064
+        
+        
+        // create charts
+        var heatmap = heatmapChart()
+                .colourRange(['#f0f0f0', '#bdbdbd', '#636363'])
+                ;
+                
+            heatmap.data(data.filter((d)=> d.Type === 'AE_Attd')) // fat arrow function filter here?
+                .colourRange(['#ffffdd', '#3e9583', '#1f2d86'])                
+                // legend parameters
+                .legendID('000') // this needs to be unique unless using same colours
+                .legendTitle('No of Attendances');
+            heatmap(g);
+            
+            heatmap.data(data.filter((d)=> d.Type === 'AE_Breach'))
+                .colourRange(['#fee8c8','#fdbb84','#e34a33'])                
+                .legendID('001') // this needs to be unique
+                .legendTitle('No of Breaches');
+            heatmap(g2);
+            
+            heatmap.data(data.filter((d)=> d.Type === 'AE_Admits'))
+                .colourRange(["#f7fcb9","#addd8e","#31a354"])                
+                .legendID('002') // this needs to be unique
+                .legendTitle('No of Admissions');
+            heatmap(g3);
+
+            heatmap.data(data.filter((d)=> d.Type === 'GP_Admits'))
+                .colourRange(["#ece7f2","#a6bddb","#2b8cbe"])                
+                .legendID('003') // this needs to be unique
+                .legendTitle('No of Admissions');
+            heatmap(g4);            
+                    
+            });
+        </script>
+        <H5>
+            Created using 
+            <a href='http://d3js.org/'>d3.js</a> and 
+            <a href='http://twitter.github.io/bootstrap/'>bootstrap</a>.
+            <p>Based on <a href='http://bl.ocks.org/nbremer/raw/62cf60e116ae821c06602793d265eaf6/'>
+               this</a> and <a href='http://blockbuilder.org/milroc/7014412'>this original</a>
+            </p>
+         </H5>
+        <hr>
+        <footer>
+            <p>&copy; None</p>
+        </footer>
+    </div>
+    <!-- /container -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js'></script>
+    <!-- Tether for Bootstrap -->
+    <script src='https://www.atlasestateagents.co.uk/javascript/tether.min.js'></script>
+    <!-- Include all compiled plugins (below) -->
+    <script src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js' integrity='sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU' crossorigin='anonymous'></script>
+
+    <!-- Preloader -->
+    <script>
+        $(window).on('load', function() { // makes sure the whole site is loaded 
+            $('#status').fadeOut(); // will first fade out the loading animation 
+            $('#preloader').delay(0).fadeOut('slow'); // will fade out the white DIV that covers the website. 
+            $('body').delay(0).css({
+                'overflow': 'visible'
+            });
+        })
+    </script>
+</body>
+
+</html>
