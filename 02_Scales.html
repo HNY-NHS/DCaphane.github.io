@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <link rel='icon' href='img/voyccg.png'>
+    <title>Scales</title>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.6/d3.min.js' integrity='sha256-5idA201uSwHAROtCops7codXJ0vja+6wbBrZdQ6ETQc=' crossorigin='anonymous'></script>
+    <script src='https://d3js.org/d3-scale-chromatic.v1.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.8.0-alpha.1/d3-tip.min.js' integrity='sha256-57pdU/+Z7kiEW2KgS2d0T8A9iGEP4dE4amG51LJcCI4=' crossorigin='anonymous'></script>
+
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css' integrity='sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj' crossorigin='anonymous'>
+    <link href='css/jumbotron.css' rel='stylesheet'>
+
+    <style>
+        text {
+            font-family: sans-serif;
+            font-size: 0.75em;
+            fill: #f00;
+        }
+        
+        .circle {
+            //opacity: 0.8;
+            stroke: #000;
+            stroke-width: 1px;
+            stroke-opacity: 1;
+        }
+        
+        .circle_highlight {
+            //opacity: 0.8;
+            stroke: yellow;
+            stroke-width: 3px;
+            stroke-opacity: 0.75;
+        }
+        
+        .button {
+          position: relative;
+          top: 0%;
+          left: 90%;
+        }
+
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: black;
+            shape-rendering: crispEdges;
+        }
+        
+        .axis text {
+            font-family: sans-serif;
+            font-size: 11px;
+            fill: #00f;
+        }        
+        
+    </style>
+</head>
+
+<body>
+
+    <div id='preloader'>
+        <div id='status'>&nbsp;</div>
+    </div>
+
+    <nav class='navbar navbar-fixed-top navbar-dark bg-primary'>
+        <div class='container'>
+            <a class='navbar-brand' href='Index.html'>Scales</a>
+            <button class='navbar-toggler hidden-sm-up' type='button' data-toggle='collapse' data-target='#CollapsingNavbar' aria-controls='CollapsingNavbar' aria-expanded='false' aria-label='Toggle navigation'>
+                &#9776;
+            </button>
+
+            <div class='collapse navbar-toggleable-xs' id='CollapsingNavbar'>
+
+                <div class='nav navbar-nav'>
+                    <a class='nav-item nav-link' href='Index.html'>Home <span class='sr-only'>(current)</span></a>
+                    <a class='nav-item nav-link' href='About.html'>About</a>
+                    <a class='nav-item nav-link' href='Contacts.html'>Contacts</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class='container' style='font: 12px sans-serif;'>
+        <div class='row col-xs-12'>
+            <h3>Understanding D3 Scales</h3>
+            <p>Useful Links:</p>
+            <a href='https://github.com/d3/d3/wiki/svg-axes'>D3 Axes</a></br>           
+            <a href='https://github.com/d3/d3-axis#axis_tickArguments'>D3 v4 Axis</a>            
+            <p>Click and drag to pan, double click to zoom in, <i>shift</i> double click to zoom out</p>
+            
+        </div>
+
+        <div class='row col-xs-12'>
+            <h5>Ordinal (Categorical) Scales</h5>
+            <button class='button btn_reset'>Reset</button>
+        </div>
+        
+        <div class='row col-xs-12'>
+            <div id='img_Scale_01'></div>            
+        </div>
+
+        <script>
+
+// consider how to separate axes so always visible...
+// http://bl.ocks.org/mbostock/db6b4335bf1662b413e7968910104f0f        
+// http://peterbeshai.com/scatterplot-in-d3-with-voronoi-interaction.html
+
+        // outer svg dimensions
+        const width = 960,
+            height = 460;
+            
+        // padding surrounding chart for axes and labelling
+        const padding = {
+            top: 30,
+            right: 30,
+            bottom: 30,
+            left: 30
+        };
+        
+        // inner chart dimensions
+        const plotAreaWidth = width - padding.left - padding.right,
+            plotAreaHeight = height - padding.top - padding.bottom;
+            
+        // other
+        const formatNumber = d3.format(',.2f'),
+            circleRadiusMin = 12,
+            circleRadiusMax = 17;
+
+        var zoom = d3.zoom()
+            .scaleExtent([0.2, 20]) // used to restrict zooming
+            //.translateExtent([[-width, -height * 0.8], [width * 1.5, height * 2]]) // used to restrict panning
+            .on('zoom', zoomed); 
+           
+        // initialize main SVG
+        var svg = d3.select('#img_Scale_01').append('svg')
+            .attr('viewBox', '0 0 ' + width + ' ' + height)               
+            .call(zoom);
+        
+        // chart content
+        var chtCircles = svg
+            .append('g')
+            .attr('id', 'svg01')
+            .attr('transform', `translate(${padding.left} ${padding.top})`);
+
+        // scales
+        const colourScale = d3.scaleSequential(d3.interpolateRainbow);
+
+        var xScaleBottom = d3.scalePoint()
+            .range([0, plotAreaWidth]);
+            
+        var xScaleTop = d3.scaleLinear()
+            .range([0, plotAreaWidth]);
+
+        var yScaleLeft = d3.scaleLinear()
+            .range([plotAreaHeight, 0]);
+            
+        var yScaleRight = d3.scaleLinear()
+            .range([plotAreaHeight, 0]);                    
+
+        var rScale = d3.scaleLinear()
+            .range([circleRadiusMin, circleRadiusMax]); // nice scaling range for the circles, manual figures, can be adjusted but keeps sizes relatively similar
+
+
+        // add in axis groups
+        // note the axes are drawn on the svg rather than within g so translates are slightly different...
+        const xAxisBottomG = svg.append('g').classed('x-axis', true)
+          .attr('transform', `translate(${padding.left} ${plotAreaHeight + padding.top})`); // backtick for template strings
+
+        // x-axis bottom label
+        svg.append('text')
+            .attr('transform', `translate(${width / 2} ${plotAreaHeight + (padding.bottom)})`)
+            .attr('dy', 30) // adjust distance from the bottom edge
+            .attr('class', 'axis-label')
+            .attr('text-anchor', 'middle')
+            .text('X Axis Bottom');
+
+        const xAxisTopG = svg.append('g').classed('x-axis', true)
+          .attr('transform', `translate(${padding.left} ${padding.top})`);
+
+        // x-axis top label
+        svg.append('text')
+            .attr('transform', `translate(${width / 2} 0)`)
+            .attr('dy', 10) // adjust distance from the edge
+            .attr('class', 'axis-label')
+            .attr('text-anchor', 'middle')
+            .text('X Axis Top');           
+            
+            
+        const yAxisLeftG = svg.append('g').classed('y-axis', true)
+          .attr('transform', `translate(${padding.left} ${padding.top})`);
+
+        // y-axis left label
+        svg.append('text')
+          .attr('transform', `rotate(270) translate(${-height / 2} 0)`)
+          .attr('dy', 8) // adjust distance from the left edge
+          .attr('class', 'axis-label')
+          .attr('text-anchor', 'middle')
+          .text('Y Axis Left');        
+          
+          
+        const yAxisRightG = svg.append('g').classed('y-axis', true)
+          .attr('transform', `translate(${width - padding.right} ${padding.top})`);
+
+        // y-axis right label
+        svg.append('text')
+          .attr('transform', `rotate(270) translate(${-height / 2} ${width - padding.left})`)
+          .attr('dy', 28) // adjust distance from the left edge
+          .attr('class', 'axis-label')
+          .attr('text-anchor', 'middle')
+          .text('Y Axis Right');           
+          
+          
+
+        // set up axis generating functions
+        const xTicks = Math.round(plotAreaWidth / 50),
+              yTicks = Math.round(plotAreaHeight / 50);
+          
+        var xAxisBottom = d3.axisBottom(xScaleBottom)
+            .ticks(xTicks)
+            .tickSizeOuter(0);
+            //.tickSize(height)
+            //.tickPadding(8 - height);
+
+        var xAxisTop = d3.axisTop(xScaleTop)
+            .ticks(xTicks)
+            .tickSizeOuter(0);
+        
+        var yAxisLeft = d3.axisLeft(yScaleLeft)
+            .ticks(yTicks)
+            .tickSizeOuter(0);        
+
+        var yAxisRight = d3.axisRight(yScaleRight)
+            .ticks(yTicks)
+            .tickSizeOuter(0);
+                    
+       /*    
+       // Clip Path to prevent object appearing outside axis
+        chtCircles.append('clipPath')                  // Make a new clipPath
+            .attr('id', 'chart-area')           // Assign an ID
+            .append('rect')                     // Within the clipPath, create a new rect
+            .attr('x', padding.left)            // Set rect's position and size…
+            .attr('y', padding.top)
+            .attr('width', plotAreaWidth)
+            .attr('height', plotAreaHeight);
+        */
+            
+        d3.csv('data/ColourData.csv', function(error, colour_data) {
+            if (error) throw error;
+
+            colour_data.forEach( d =>
+                d.rndVar = +d.Rnd_Var
+            );
+
+            var length = colour_data.length + 1 // zero based
+
+            xScaleBottom.domain(colour_data.map( d => d.Letter));
+                
+            xScaleTop.domain([1, d3.max(colour_data, (d, i) => i) + 1]); // 0 - 25 becomes 1 to 26
+
+            yScaleLeft.domain([0, d3.max(colour_data, d => d.rndVar) + circleRadiusMax]);
+
+            yScaleRight.domain([0, d3.max(colour_data, d => d.rndVar) + circleRadiusMax]);                   
+
+            rScale.domain([0, d3.max(colour_data, d => d.rndVar)]);                
+                
+            /* Define the data for the circles */
+            var chtCircle = chtCircles.append('g')
+                .attr('clip-path', 'url(#chart-area)')                
+                .selectAll('#svg01')
+                .data(colour_data);
+
+            /*Create and place the 'blocks' containing the circle and the text */
+            var circleEnter = chtCircle.enter()
+                .append('g')
+                .attr('transform', (d, i) => `translate(${(plotAreaWidth / length) * i + padding.left + (i+1)/length * 70})`); // don't like this bit! viewport adj?
+
+            /*Create the circle for each block */
+            var circle = circleEnter.append('circle')
+                .attr('class', 'circle')
+                .attr('cx', (d, i) => xScaleBottom(i))
+                .attr('cy', d => yScaleLeft(d.rndVar) + padding.top)                    
+                .attr('r', d => rScale(d.rndVar))
+                .style('fill', (d, i) => colourScale((i + 1) / length))
+                .on('mouseover',
+                    function(d) { return
+                        d3.select(this)
+                            .attr('class', 'circle_highlight')
+                    }).on('mouseout',
+                    function(d) { return
+                        d3.select(this)
+                            .attr('class', 'circle')
+                    });
+
+            /* Create the text for each block */
+            circleEnter.append('text')
+                .attr('dx', -4)
+                .attr('dy', d => yScaleLeft(d.rndVar))
+                .text(d => d.Letter ); 
+
+            /* Tooltip */
+            circleEnter.append('title')
+                .text(function(d, i) {
+                    return d.Letter + '\n' + colourScale((i + 1) / length);
+                });
+
+          // Draw the axes             
+              
+            xAxisBottomG.call(xAxisBottom);
+            xAxisTopG.call(xAxisTop);                 
+            yAxisLeftG.call(yAxisLeft);
+            yAxisRightG.call(yAxisRight);                  
+                  
+                 
+d3.select('.btn_reset')
+    .on('click', resetted);
+
+
+zoom.scaleTo(svg, 1);
+    
+            });
+
+ function zoomed() {
+	chtCircles.attr('transform', d3.event.transform);
+    //xAxisBottomG.call(xAxisBottom.scale(d3.event.transform.rescaleX(xScaleBottom)));
+    xAxisTopG.call(xAxisTop.scale(d3.event.transform.rescaleX(xScaleTop)));    
+    yAxisLeftG.call(yAxisLeft.scale(d3.event.transform.rescaleY(yScaleLeft))); 
+    yAxisRightG.call(yAxisRight.scale(d3.event.transform.rescaleY(yScaleRight)));    
+    
+}   
+           
+function resetted() {
+  svg.transition()
+      .duration(750)
+      .call(zoom.transform, d3.zoomIdentity);
+} 
+           
+        </script>
+        <H6>
+            Created using 
+            <a href='http://d3js.org/'>d3.js</a>
+         </H6>
+        <hr>
+        <footer>
+            <p>&copy; 2016 DCaph</p>
+        </footer>
+    </div>
+    <!-- /container -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js'></script>
+    <!-- Tether for Bootstrap -->
+    <script src='https://www.atlasestateagents.co.uk/javascript/tether.min.js'></script>
+    <!-- Include all compiled plugins (below) -->
+    <script src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js' integrity='sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU' crossorigin='anonymous'></script>
+
+    <!-- Preloader -->
+    <script>
+        $(window).on('load', function() { // makes sure the whole site is loaded 
+            $('#status').fadeOut(); // will first fade out the loading animation 
+            $('#preloader').delay(0).fadeOut('slow'); // will fade out the white DIV that covers the website. 
+            $('body').delay(0).css({
+                'overflow': 'visible'
+            });
+        })
+    </script>
+</body>
+
+</html>
