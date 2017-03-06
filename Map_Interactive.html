@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" href="img/voyccg.png">
+    <title>GP Practice</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.6/d3.min.js" integrity="sha256-5idA201uSwHAROtCops7codXJ0vja+6wbBrZdQ6ETQc=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+    <link href="css/jumbotron.css" rel="stylesheet">
+    
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.31.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.31.0/mapbox-gl.css' rel='stylesheet'/>
+
+    <style>
+
+    #map { width: 500px; height: 600px; }
+
+    body { font: 12px Arial;}
+
+    path { 
+        stroke: steelblue;
+        stroke-width: 1.5;
+        fill: none;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+    }
+
+    
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: grey;
+        stroke-width: 2;
+        shape-rendering: crispEdges;
+    }
+    .axis text {font-size:0.7em;fill:#555;font-family:sans-serif}
+
+    .circle {
+        fill: white;
+        stroke: orange;
+        stroke-width: 2px;
+    }
+
+    div.tooltip {	
+        position: absolute;			
+        text-align: center;			
+        width: 60px;					
+        height: 28px;					
+        padding: 2px;				
+        font: 12px sans-serif;		
+        background: lightsteelblue;	
+        border: 0px;		
+        border-radius: 8px;			
+        pointer-events: none;			
+    }    
+    
+    </style>
+</head>
+
+<body>
+
+    <div id="preloader">
+        <div id="status">&nbsp;</div>
+    </div>
+
+    <nav class="navbar navbar-fixed-top navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="Index.html">Practice Demographics</a>
+            <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#CollapsingNavbar" aria-controls="CollapsingNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                &#9776;
+            </button>
+
+            <div class="collapse navbar-toggleable-xs" id="CollapsingNavbar">
+
+                <div class="nav navbar-nav">
+                    <a class="nav-item nav-link" href="Index.html">Home <span class="sr-only">(current)</span></a>
+                    <a class="nav-item nav-link" href="About.html">About</a>
+                    <a class="nav-item nav-link" href="Contacts.html">Contacts</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style='font: 12px sans-serif;'>
+        <div class='row'>
+            <div class='col-xs-12'>
+                <h3>GP Practice Demographics
+            </h3>
+                <p>Testing Map and Chart Interaction...</p>
+            </div>
+        </div>
+
+        <div class='row'>
+            <div id="map" class='col-xs-12 col-xs-12 col-sm-6'></div>
+            <div id="cht_totalPop" class='col-xs-12 col-xs-12 col-sm-6'></div>
+        </div>
+
+        <script>
+    
+    // Map Code
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZGNhcGgiLCJhIjoiY2l5cnU3Mnl4MDAwMDJxbXJ6bjBiYjVwdCJ9.bCjPbVwn-V7ENeDao6XYCg'; // replace this with your access token
+    var map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/dcaph/cizhenfbf000a2rpd8kf8tzo5?optimize=true', // replace this with your style
+      logoPosition: true, // attribution
+      center: [-0.9,53.986], // starting position
+      zoom: 8, // starting zoom
+      minZoom: 5
+    });
+
+    // Add zoom and rotation controls to the map.
+    map.addControl(new mapboxgl.NavigationControl());
+    
+    // Scale
+    map.addControl(new mapboxgl.ScaleControl({
+    maxWidth: 80,
+    unit: 'imperial'
+    }));
+    
+    map.on('click', function(e) {
+      var features = map.queryRenderedFeatures(e.point, {
+        layers: ['practices_central', 'practices_south', 'practices_north'] // replace this with the name of the layer
+      });
+        //console.log(features)
+      if (!features.length) {
+        return;
+      }
+
+      var feature = features[0];
+        //console.log(feature.properties.practice_c)
+        update_chtTotalPop(feature.properties.practice_c)
+        
+      /*  
+      var popup = new mapboxgl.Popup({ offset: [0, -15] })
+        .setLngLat(feature.geometry.coordinates)
+        .setHTML('<h3>' + feature.properties.practice_c + '</h3><p>' + feature.properties.practice_n + '</p>')
+        .setLngLat(feature.geometry.coordinates)
+        .addTo(map);
+        */
+    });
+
+    
+    // Create a popup, but don't add it to the map yet.
+    var popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false
+    });
+
+    map.on('mousemove', function(e) {
+        var features = map.queryRenderedFeatures(e.point, { layers: ['practices_central', 'practices_south', 'practices_north'] });
+        // Change the cursor style as a UI indicator.
+        map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+
+        if (!features.length) {
+            popup.remove();
+            return;
+        }
+
+        var feature = features[0];
+
+        // Populate the popup and set its coordinates
+        // based on the feature found.
+        popup.setLngLat(feature.geometry.coordinates)
+            .setHTML('<p><strong>' + feature.properties.practice_c + ': </strong>' + feature.properties.practice_n.toProperCase() + '</p><p><em>Locality: <em>' + feature.properties.locality + '</p><p><em>Population: </em>' + feature.properties.population.toLocaleString() + '</p>')
+            .addTo(map);
+    });
+    /// End Map Code
+    
+    
+            var margin = {
+                top: 15,
+                right: 0,
+                bottom: 150,
+                left: 60
+            }
+            var width = 900 - margin.left - margin.right
+            var height = 300 - margin.top - margin.bottom
+
+            var svg = d3.select('#cht_totalPop')
+                .append('svg')
+                .attr('class', 'img-fluid m-x-auto')
+                .attr('viewBox', '0 0 ' + width + ' ' + height)
+                .attr('preserveAspectRatio', 'xMidYMid')
+                .attr('width', width + margin.left + margin.top)
+                .attr('height', height + margin.top + margin.bottom + 10)
+                .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+
+           
+            var parseDate = d3.timeParse('%y-%b'), // import format
+                formatPeriod = d3.timeFormat('%b-%y'), // presentational format eg. Apr-16
+                formatNumber = d3.format(',d');
+                
+            var x = d3.scaleTime().rangeRound([0, width - 100])
+            var y = d3.scaleLinear().rangeRound([height, 0])
+
+            var line = d3.line()
+                .x(function(d) { return x(d.Period); })
+                .y(function(d) { return y(d.Population); });
+
+            var circle = svg.selectAll('circle')
+            
+            var xAxis = d3.axisBottom().scale(x)
+            var yAxis = d3.axisLeft().scale(y)
+
+                
+            // Define the div for the tooltip
+            var div = d3.select('body').append('div')	
+                .attr('class', 'tooltip')				
+                .style('opacity', 0);                
+                
+            d3.csv('data/Practice_Populations.csv', function(d) {
+                return {
+                    Practice: d.Practice_Mapped,
+                    Locality: d.Locality,
+                    Age_Band: d.Age_Band,
+                    Period: d.Period, // parseDate
+                    Male_Pop: +d.Male,
+                    Female_Pop: +d.Female,
+                    Total_Pop: +d.Total
+                };
+            }, initialize)                
+
+
+            // default chart for total population
+            function initialize(error, data) {
+                if (error) {
+                    throw error
+                }
+                
+                // console.log(data)
+                
+                var dataLevel01 = d3.nest()                   
+                    .key(function(d) { return d.Period; })
+                    .rollup(function(d) {
+                        return d3.sum(d, function(g) { return g.Total_Pop; })
+                    }).entries(data);            
+                
+                dataLevel01.forEach(function(d) {
+                    d.Period = parseDate(d.key);
+                    d.Population = +d.value;
+                    });
+
+                
+                x.domain(d3.extent(dataLevel01, function(d) {
+                        return d.Period;
+                        })).nice()
+                //y.domain([0, d3.max(dataLevel01, function(d) { return d.Population; })])
+                y.domain(d3.extent(dataLevel01, function(d) {
+                        return d.Population;
+                        })).nice()                        
+                
+                
+                svg.append('g')
+                    .attr('class', 'x axis')
+                    .attr('transform', 'translate(0,' + height + ')')
+                    .call(xAxis)
+                    .append('text')
+                    .attr('x', width / 2)
+                    .attr('y', 30)
+                    .style('text-anchor', 'end')
+                    .style('font-weight', 'bold')
+                    .text('Period')
+
+                svg.append('g')
+                    .attr('class', 'y axis')
+                    .call(yAxis)
+                    .append('text')
+                    .attr('transform', 'rotate(-90)')
+                    .attr('x', -height / 2 + 30)
+                    .attr('y', -40)
+                    .style('text-anchor', 'end')
+                    .style('font-weight', 'bold')
+                    .text('Population')            
+
+                    
+                // Add the valueline path.
+                svg.append('path')
+                    .datum(dataLevel01)                
+                    .attr('class', 'line')
+                    .attr('d', line);
+            
+
+                // Add the circles
+            circle                
+                .data(dataLevel01)			
+                .enter()
+                .append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', 5)		
+                    .attr('cx', function(d) { return x(d.Period); })		 
+                    .attr('cy', function(d) { return y(d.Population); })		
+                    .on('mouseover', function(d) {		
+                        div.transition()		
+                            .duration(200)		
+                            .style('opacity', .9);		
+                        div	.html(formatPeriod(d.Period) + '<br/>'  + formatNumber(d.Population))
+                            .style('left', (d3.event.pageX) + 'px')		
+                            .style('top', (d3.event.pageY - 28) + 'px');	
+                        })					
+                    .on('mouseout', function(d) {		
+                        div.transition()		
+                            .duration(500)		
+                            .style('opacity', 0);	
+                    });
+            }
+
+
+
+
+            // update charts for specific practice
+            // http://bl.ocks.org/d3noob/7030f35b72de721622b8
+            function update_chtTotalPop(practiceCode){
+                
+                //var practiceCode = 'B82005'
+                
+                // Get the data again - is this necessary?
+                d3.csv('data/Practice_Populations.csv', function(error, data) {
+                    data.forEach(function(d) {
+                        d.Practice = d.Practice_Mapped,
+                        d.Locality = d.Locality,
+                        d.Age_Band = d.Age_Band,
+                        d.Period = d.Period, // parseDate
+                        d.Male_Pop = +d.Male,
+                        d.Female_Pop = +d.Female,
+                        d.Total_Pop = +d.Total
+                    });
+
+                //console.log(data)
+                var dataFiltered = data.filter(function (d) { return d.Practice === practiceCode })
+                // console.log(dataFiltered)
+                
+                // filter here
+                var dataLevel02 = d3.nest()          
+                    .key(function(d) { return d.Period; })
+                    .rollup(function(d) {
+                        return d3.sum(d, function(g) { return g.Total_Pop; })
+                    }).entries(dataFiltered);
+                                       
+
+                dataLevel02.forEach(function(d) {
+                    d.Practice = practiceCode
+                    d.Period = parseDate(d.key);
+                    d.Population = +d.value;
+                    });                    
+                
+                //console.log(dataLevel02)                
+                
+                x.domain(d3.extent(dataLevel02, function(d) {
+                        return d.Period;
+                        })).nice()
+                //y.domain([0, d3.max(dataLevel02, function(d) { return d.Population; })])
+                y.domain(d3.extent(dataLevel02, function(d) {
+                        return d.Population;
+                        })).nice()                        
+                
+
+                
+                var svg = d3.select('#cht_totalPop').transition();
+
+                svg.select('.x.axis')
+                    .duration(750)
+                    .call(xAxis);
+
+                svg.select('.y.axis')
+                    .duration(750)
+                    .call(yAxis);       
+
+                svg.select('.line')
+                  .duration(750)
+                  //.datum(dataLevel02)
+                  .attr('d', line(dataLevel02));
+
+                // remove old points here?
+                svg.selectAll('circle')
+                    .duration(10)
+                    .remove();
+                         
+
+            circle
+                .data(dataLevel02)		
+                .enter()
+                .append('circle')
+                    .attr('class', 'circle')
+                    .attr('r', 5)		
+                    .attr('cx', function(d) { return x(d.Period); })		 
+                    .attr('cy', function(d) { return y(d.Population); })		
+                    .on('mouseover', function(d) {		
+                        div.transition()		
+                            .duration(200)		
+                            .style('opacity', .9);		
+                        div	.html(formatPeriod(d.Period) + '<br/>'  + formatNumber(d.Population))
+                            .style('left', (d3.event.pageX) + 'px')		
+                            .style('top', (d3.event.pageY - 28) + 'px');	
+                        })					
+                    .on('mouseout', function(d) {		
+                        div.transition()		
+                            .duration(500)		
+                            .style('opacity', 0);	
+                    });
+                      
+                    
+                });
+            }
+    
+    
+    // Function to create Title Case    
+    String.prototype.toProperCase = function () {
+        return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+    };    
+    
+    
+
+        </script>
+        <H5>
+            Created using 
+            <a href="http://d3js.org/">d3.js</a>,
+            <a href="https://www.mapbox.com/about/maps/">© Mapbox</a>,
+            <a href="http://www.openstreetmap.org/copyright">© OpenStreetMap</a> and
+            <a href="http://twitter.github.io/bootstrap/">bootstrap</a>.
+            </p>
+         </H5>
+        <hr>
+        <footer>
+        © <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>
+        </footer>
+    </div>
+    <!-- /container -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Tether for Bootstrap -->
+    <script src="https://www.atlasestateagents.co.uk/javascript/tether.min.js"></script>
+    <!-- Include all compiled plugins (below) -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>
+
+    <!-- Preloader -->
+    <script>
+        $(window).on('load', function() { // makes sure the whole site is loaded 
+            $('#status').fadeOut(); // will first fade out the loading animation 
+            $('#preloader').delay(0).fadeOut('slow'); // will fade out the white DIV that covers the website. 
+            $('body').delay(0).css({
+                'overflow': 'visible'
+            });
+        })
+    </script>
+</body>
+
+</html>
