@@ -7,14 +7,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="icon" href="img/voyccg.png">
-    <title>Tab Title</title>
+    <title>VoY CCG Map</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.6/d3.min.js" integrity="sha256-5idA201uSwHAROtCops7codXJ0vja+6wbBrZdQ6ETQc=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
     <link href="css/jumbotron.css" rel="stylesheet">
 
     <style>
-
+        img {
+            border: none;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            background: #ccc;
+            transition: transform .2s ease-in-out;
+        }
+        
+        .img-hover img {
+            -webkit-transition: all .3s ease;
+            /* Safari and Chrome */
+            -moz-transition: all .3s ease;
+            /* Firefox */
+            -o-transition: all .3s ease;
+            /* IE 9 */
+            -ms-transition: all .3s ease;
+            /* Opera */
+            transition: all .3s ease;
+        }
+        
+        .img-hover img:hover {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transform: translateZ(0) scale(1.05);
+            /* Safari and Chrome */
+            -moz-transform: scale(1.05);
+            /* Firefox */
+            -ms-transform: scale(1.05);
+            /* IE 9 */
+            -o-transform: translatZ(0) scale(1.05);
+            /* Opera */
+            transform: translatZ(0) scale(1.05);
+        }
+        
+        figure {
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        figcaption {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 
@@ -26,7 +68,7 @@
 
     <nav class="navbar navbar-fixed-top navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="index.html">Page Name</a>
+            <a class="navbar-brand" href="index.html">VoY CCG Boundary</a>
             <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#CollapsingNavbar" aria-controls="CollapsingNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 &#9776;
             </button>
@@ -45,28 +87,60 @@
     <div class="container" style='font: 12px sans-serif;'>
         <div class='row'>
             <div class='col-xs-12'>
-                <h3>Sub Title
+                <h3>Static Maps showing the VoY boundary and GP Practices
             </h3>
-                <p>Additional Detail</p>
+                <p></p>
             </div>
         </div>
+        <div class='row'>
+            <div class="col-md-6 img-hover">
+                <a href="img/map_VoY_CCG_Practices.png">
+                    <figure>
+                        <figcaption>CCG Boundary</figcaption>
+                        <img src="img/map_VoY_CCG_Practices.png" class="img-fluid m-x-auto" alt="Responsive image">
+                    </figure>
+                </a>
+            </div>
+
+            <div class="col-md-6 img-hover">
+                <a href="img/map_VoY_CCG_Practices_North.png">
+                    <figure>
+                        <figcaption>North Practices</figcaption>
+                        <img src="img/map_VoY_CCG_Practices_North.png" class="img-fluid m-x-auto" alt="Responsive image">
+                    </figure>
+                </a>
+            </div>
+        </div>
+
+        <br>
+        <br>
 
         <div class='row'>
-            <div class='col-xs-12'>
-                <svg id="img_location" class="img-fluid m-x-auto" width="960" height="1060" viewBox="0 0 960 1060" preserveAspectRatio="xMidYMid">
-                </svg>
+            <div class="col-md-6 img-hover">
+                <a href="img/map_VoY_CCG_Practices_Central.png">
+                    <figure>
+                        <figcaption>Central Practices</figcaption>
+                        <img src="img/map_VoY_CCG_Practices_Central.png" class="img-fluid m-x-auto" alt="Responsive image">
+                    </figure>
+                </a>
+            </div>
+
+            <div class="col-md-6 img-hover">
+                <a href="img/map_VoY_CCG_Practices_South.png">
+                    <figure>
+                        <figcaption>South Practices</figcaption>
+                        <img src="img/map_VoY_CCG_Practices_South.png" class="img-fluid m-x-auto" alt="Responsive image">
+                    </figure>
+                </a>
             </div>
         </div>
 
-        <script>
-        </script>
+        <br>
+
         <H5>
-            Created using 
-            <a href="http://d3js.org/">d3.js</a> and 
-            <a href="http://twitter.github.io/bootstrap/">bootstrap</a>.
-            <p>Based on this <a href="">
-               original</a>
-            </p>
+            <p>Created using <a href="http://www.qgis.org/en/site/">QGIS</a></p>
+            <p>CCG Boundaries available <a href="https://www.england.nhs.uk/resources/ccg-maps/">here</a>.</p>
+            <p>Map detail available from <a href="">here</a>.</p>
          </H5>
         <hr>
         <footer>
