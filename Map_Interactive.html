@@ -192,7 +192,7 @@
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
            
-            var parseDate = d3.timeParse('%y-%b'), // import format
+            var parseDate = d3.timeParse('%b-%y'), // import format
                 formatPeriod = d3.timeFormat('%b-%y'), // presentational format eg. Apr-16
                 formatNumber = d3.format(',d');
                 
