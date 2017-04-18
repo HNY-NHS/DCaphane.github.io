@@ -14,89 +14,102 @@
     <link href='css/jumbotron.css' rel='stylesheet'>
     
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.31.0/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.31.0/mapbox-gl.css' rel='stylesheet'/>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.31.0/mapbox-gl.css' rel='stylesheet' />
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.8.0-alpha.1/d3-tip.min.js' integrity='sha256-57pdU/+Z7kiEW2KgS2d0T8A9iGEP4dE4amG51LJcCI4=' crossorigin='anonymous'></script>
-    
+
     <style>
-
-    #map { width: 500px; height: 600px; }
-
-    body { font: 12px Arial;}
-
-    path { 
-        stroke: steelblue;
-        stroke-width: 1.5;
-        fill: none;
-        stroke-linejoin: round;
-        stroke-linecap: round;
-    }
-
-    
-    .axis path,
-    .axis line {
-        fill: none;
-        stroke: #777;
-        stroke-opacity: .7;
-        //stroke-width: 1;
-        shape-rendering: crispEdges;
-    }
-    
-    .axis text {
-        font-size: 1.2em;
-        fill: #555;
-        font-family: sans-serif;}
-
-    .marker {
-        fill: white;
-        stroke: orange;
-        stroke-width: 2px;       
-    }
-
-    .marker_highlight {
-        //opacity: 0.8;
-        stroke: red;
-        stroke-width: 4px;
-        fill: orange;
-        //stroke-opacity: 0.75;
-        cursor: pointer;         
-    }
-            
-    <!-- For the demographic bars-->
-    .bar {
-      fill-opacity: 0.6;
-        cursor: pointer;
-    }      
-    .bar.left {
-      fill: #1f77b4;
-    }
-    .bar.right {
-      fill: #e377c2;
-    }
-    .bar.hover {
-        opacity: 1;
-        fill: orangered;
-    }
-
-    
-    #selPractice {
-        float: right;
-    }
-
-    #circleOver65 {
-        position: relative;
-        top: 0;
-        left: 40%;
-        width:20%;
-        border-radius:25px;
-        font-size:1.2em;
-        color:#fff;
-        line-height:50px;
-        text-align:center;
-        background:#000
-        }    
-
-
+        #map {
+            width: 500px;
+            height: 600px;
+        }
+        
+        body {
+            font: 12px Arial;
+        }
+        
+        path {
+            stroke: steelblue;
+            stroke-width: 1.5;
+            fill: none;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+        }
+        
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #777;
+            stroke-opacity: .7;
+            //stroke-width: 1;
+            shape-rendering: crispEdges;
+        }
+        
+        .axis text {
+            font-size: 1.2em;
+            fill: #555;
+            font-family: sans-serif;
+        }
+        
+        .marker {
+            fill: white;
+            stroke: orange;
+            stroke-width: 2px;
+        }
+        
+        .marker_highlight {
+            //opacity: 0.8;
+            stroke: red;
+            stroke-width: 4px;
+            fill: orange;
+            //stroke-opacity: 0.75;
+            cursor: pointer;
+        }
+        
+        <!-- For the demographic bars--> 
+        .bar {
+            fill-opacity: 0.6;
+            cursor: pointer;
+        }
+        
+        .bar.left {
+            fill: #1f77b4;
+        }
+        
+        .bar.right {
+            fill: #e377c2;
+        }
+        
+        .bar.hover {
+            opacity: 1;
+            fill: orangered;
+        }
+        
+        .barComp {
+            fill: none;
+            stroke-opacity: 0.2 stroke-width: 3;
+            stroke: black;
+        }
+        /* Drop down selection */
+        
+        .selPractice {
+            float: right;
+        }
+        
+        #circleOver65 {
+            position: relative;
+            margin: 20px auto auto;
+            height: 50px;
+            width: 50px;
+            display: table-cell;
+            /* block */
+            text-align: center;
+            vertical-align: middle;
+            border-radius: 50%;
+            background: yellow;
+            /* background:linear-gradient(to bottom, #40b3ff, #09f)}; */
+        }
+        
         .d3-tip {
             line-height: 1;
             font-weight: bold;
@@ -118,15 +131,13 @@
             position: absolute;
             text-align: center;
         }
-       
         /* Style northward tooltips differently */
+        
         .d3-tip.n:after {
             margin: -1px 0 0 0;
             top: 100%;
             left: 0;
         }
-
-    
     </style>
 </head>
 
@@ -138,7 +149,7 @@
 
     <nav class='navbar navbar-fixed-top navbar-dark bg-primary'>
         <div class='container'>
-            <a class='navbar-brand' href='Index.html'>Practice Demographics</a>
+            <a class='navbar-brand' href='#'>Practice Demographics</a>
             <button class='navbar-toggler hidden-sm-up' type='button' data-toggle='collapse' data-target='#CollapsingNavbar' aria-controls='CollapsingNavbar' aria-expanded='false' aria-label='Toggle navigation'>
                 &#9776;
             </button>
@@ -160,127 +171,127 @@
                 <h3>GP Practice Demographics</h3>
             </div>
         </div>
-       
-        
+
         <div class='row'>
             <div id='map' class='col-xs-12 col-xs-12 col-sm-6'></div>
 
             <div id='cht_PopTrend' class='col-xs-12 col-xs-12 col-sm-6'>
-                <select id='selPractice'></select> <!-- drop down, selection -->            
+                <select id='selPractice' class='selPractice'></select>
+                <!-- drop down, selection -->
             </div>
-            
+
             <div id='cht_PopDemo' class='col-xs-12 col-xs-12 col-sm-6'>
-                <div id='circleOver65'></div>
+                <a id='circleOver65' data-toggle="tooltip" data-placement="auto top" title='Percent Aged Over 65'></a>
+                <select id='selPracticeCompare' class='selPractice'></select>
+                <!-- drop down, selection -->
             </div>
-            
+
         </div>
 
-        <script>    
+        <script>
+            // Map Code
+            mapboxgl.accessToken = 'pk.eyJ1IjoiZGNhcGgiLCJhIjoiY2l5cnU3Mnl4MDAwMDJxbXJ6bjBiYjVwdCJ9.bCjPbVwn-V7ENeDao6XYCg'; // replace this with your access token
+            var map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/dcaph/cizhenfbf000a2rpd8kf8tzo5?optimize=true', // replace this with your style
+                logoPosition: true, // attribution
+                center: [-0.9, 53.986], // starting position
+                zoom: 8, // starting zoom
+                minZoom: 5
+            });
 
-        
-    // Map Code
-    mapboxgl.accessToken = 'pk.eyJ1IjoiZGNhcGgiLCJhIjoiY2l5cnU3Mnl4MDAwMDJxbXJ6bjBiYjVwdCJ9.bCjPbVwn-V7ENeDao6XYCg'; // replace this with your access token
-    var map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/dcaph/cizhenfbf000a2rpd8kf8tzo5?optimize=true', // replace this with your style
-      logoPosition: true, // attribution
-      center: [-0.9,53.986], // starting position
-      zoom: 8, // starting zoom
-      minZoom: 5
-    });
+            // Add zoom and rotation controls to the map.
+            map.addControl(new mapboxgl.NavigationControl());
 
-    // Add zoom and rotation controls to the map.
-    map.addControl(new mapboxgl.NavigationControl());
-    
-    // Scale
-    map.addControl(new mapboxgl.ScaleControl({
-    maxWidth: 80,
-    unit: 'imperial'
-    }));
-    
-    map.on('click', function(e) {
-      var features = map.queryRenderedFeatures(e.point, {
-        layers: ['practices_central', 'practices_south', 'practices_north'] // replace this with the name of the layer
-      });
-        //console.log(features)
-      if (!features.length) {
-        return;
-      }
+            // Scale
+            map.addControl(new mapboxgl.ScaleControl({
+                maxWidth: 80,
+                unit: 'imperial'
+            }));
 
+            map.on('click', function(e) {
+                var features = map.queryRenderedFeatures(e.point, {
+                    layers: ['practices_central', 'practices_south', 'practices_north'] // replace this with the name of the layer
+                });
+                // console.log(features)
+                if (!features.length) {
+                    return;
+                }
 
-      var feature = features[0];
-        //console.log(feature.properties.practice_c)
-        selectedPractice = feature.properties.practice_c;
-        //console.log(selectedPractice)
-        
-        chartPopulationTrend(selectedPractice);
-        chartDemographics(selectedPractice, selectedDate);
-        selPracticeDropDown.value = selectedPractice;
-        
-      /*  
-      var popup = new mapboxgl.Popup({ offset: [0, -15] })
-        .setLngLat(feature.geometry.coordinates)
-        .setHTML('<h3>' + feature.properties.practice_c + '</h3><p>' + feature.properties.practice_n + '</p>')
-        .setLngLat(feature.geometry.coordinates)
-        .addTo(map);
-        */
-    });
+                var feature = features[0];
+                // console.log(feature.properties.practice_c)
+                selectedPractice = feature.properties.practice_c;
+                // selectedPracticeCompare = feature.properties.practice_c;
 
-    
-    // Create a popup, but don't add it to the map yet.
-    var popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false
-    });
+                // console.log(selectedPractice)
 
-    map.on('mousemove', function(e) {
-        var features = map.queryRenderedFeatures(e.point, { layers: ['practices_central', 'practices_south', 'practices_north'] });
-        // Change the cursor style as a UI indicator.
-        map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+                chartPopulationTrend(selectedPractice);
+                chartDemographics(selectedPractice, selectedDate);
+                selPracticeDropDown.value = selectedPractice;
 
-        if (!features.length) {
-            popup.remove();
-            return;
-        }
+                chartDemographicsCompare(selectedPracticeCompare, selectedDate); // need to call since cleared
+                // selPracticeCompareDropDown.value = selectedPracticeCompare;
 
-        var feature = features[0];
+                /*  
+                var popup = new mapboxgl.Popup({ offset: [0, -15] })
+                  .setLngLat(feature.geometry.coordinates)
+                  .setHTML('<h3>' + feature.properties.practice_c + '</h3><p>' + feature.properties.practice_n + '</p>')
+                  .setLngLat(feature.geometry.coordinates)
+                  .addTo(map);
+                  */
+            });
 
-        // Populate the popup and set its coordinates
-        // based on the feature found.
-        popup.setLngLat(feature.geometry.coordinates)
-            .setHTML('<p><strong>' + feature.properties.practice_c + ': </strong>' + feature.properties.practice_n.toProperCase() + '</p><p><em>Locality: <em>' + feature.properties.locality + '</p><p><em>Population: </em>' + feature.properties.population.toLocaleString() + '</p>')
-            .addTo(map);
-    });
-    /// End Map Code
-        
-        
-        
-        
+            // Create a popup, but don't add it to the map yet.
+            var popup = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+
+            map.on('mousemove', function(e) {
+                var features = map.queryRenderedFeatures(e.point, {
+                    layers: ['practices_central', 'practices_south', 'practices_north']
+                });
+                // Change the cursor style as a UI indicator.
+                map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+
+                if (!features.length) {
+                    popup.remove();
+                    return;
+                }
+
+                var feature = features[0];
+
+                // Populate the popup and set its coordinates
+                // based on the feature found.
+                popup.setLngLat(feature.geometry.coordinates)
+                    .setHTML('<p><strong>' + feature.properties.practice_c + ': </strong>' + feature.properties.practice_n.toProperCase() + '<br><em>Locality: <em>' + feature.properties.locality + '<br><em>Population: </em>' + feature.properties.population.toLocaleString() + '</p>')
+                    .addTo(map);
+            });
+            /// End Map Code
+
             var width = 700,
                 height = 350;
-        
+
             var margin = {
                 top: 15,
                 right: 10,
                 bottom: 150,
                 left: 70
             };
-            
+
             var marginDemo = {
                 top: 15,
                 right: 10,
                 bottom: 50,
                 left: 5,
                 middle: 28
-            };           
+            };
 
-            
             var parseDate = d3.timeParse('%b-%y'), // import format
                 formatPeriod = d3.timeFormat('%b-%y'), // presentational format eg. Apr-16
                 formatNumber = d3.format(',d'),
                 formatPercent = d3.format(',.1%');
-                            
-            
+
             // Trend by Period
             var svgTrend = d3.select('#cht_PopTrend')
                 .append('svg')
@@ -296,20 +307,23 @@
                 yPeriod = d3.scaleLinear().rangeRound([height, 0]);
 
             var xAxisPeriod = d3.axisBottom(xPeriod),
-                yAxisPeriod = d3.axisLeft(yPeriod);  
+                yAxisPeriod = d3.axisLeft(yPeriod);
 
             var line = d3.line()
-                .x(function(d) { return xPeriod(d.Period); })
-                .y(function(d) { return yPeriod(d.Population); });
+                .x(function(d) {
+                    return xPeriod(d.Period);
+                })
+                .y(function(d) {
+                    return yPeriod(d.Population);
+                });
 
             var circle = svgTrend.selectAll('marker');
 
             // Define the div for the tooltip
-            var div = d3.select('body').append('div')	// need to understand this...
-                .attr('class', 'tooltip')				
-                .style('opacity', 0);                 
-                
-                
+            var div = d3.select('body').append('div') // need to understand this...
+                .attr('class', 'tooltip')
+                .style('opacity', 0);
+
             // Demographic breakdown (age, sex)
             // http://stackoverflow.com/questions/25044997/creating-population-pyramid-with-d3-js
             var svgDemo = d3.select('#cht_PopDemo')
@@ -328,37 +342,35 @@
 
             // these are the x-coordinates of the y-axes
             var pointA = regionWidth,
-                pointB = width - regionWidth;                
-                                              
+                pointB = width - regionWidth;
+
             // the xScale goes from 0 to the width of a region
             // it will be reversed for the left x-axis
             var xScale = d3.scaleLinear()
-              .range([0, regionWidth])
-              .nice();
+                .range([0, regionWidth])
+                .nice();
 
             var xScaleLeft = d3.scaleLinear()
-              .range([regionWidth, 0]);
+                .range([regionWidth, 0]);
 
             var xScaleRight = d3.scaleLinear()
-              .range([0, regionWidth]);
+                .range([0, regionWidth]);
 
             var yScale = d3.scaleBand()
-              .rangeRound([height, 0])
-              .padding(0.1);
-              
+                .rangeRound([height, 0])
+                .padding(0.1);
 
             // set up axes
             var yAxisLeft = d3.axisRight(yScale)
-              .tickSize(2, 0)
-              .tickPadding(marginDemo.middle - 4);
+                .tickSize(2, 0)
+                .tickPadding(marginDemo.middle - 4);
 
             var yAxisRight = d3.axisLeft(yScale)
-              .tickSize(2, 0)
-              .tickFormat('');
+                .tickSize(2, 0)
+                .tickFormat('');
 
             var xAxisRight = d3.axisBottom(xScale)
-              .tickFormat(formatPercent);              
-
+                .tickFormat(formatPercent);
 
             // Tooltips
             var tipTrend = d3.tip()
@@ -368,208 +380,261 @@
                     return '<strong>' + formatPeriod(d.Period) + ':<br></strong> <span style="color:red">' + formatNumber(d.Population) + '</span>';
                 });
 
-            svgTrend.call(tipTrend);            
-
+            svgTrend.call(tipTrend);
 
             var tipDemoF = d3.tip()
                 .attr('class', 'd3-tip')
                 .offset([-10, 0])
                 .html(function(d, i) {
-                    return '<strong>Female</strong><br>Age: ' + d.key + 
-                    '<br><span style="color:red">' + "Population: " + formatNumber(d.value.female) + '</span>' +
-                    '<br><span style="color:red">' + "% Total: " + formatPercent(d.value.female / totalPopulation) + '</span>'
-                    ;
+                    return '<strong>Female</strong><br>Age: ' + d.key +
+                        '<br><span style="color:red">' + "Population: " + formatNumber(d.value.female) + '</span>' +
+                        '<br><span style="color:red">' + "% Total: " + formatPercent(d.value.female / totalPopulation) + '</span>';
                 });
 
             var tipDemoM = d3.tip()
                 .attr('class', 'd3-tip')
                 .offset([-10, 0])
                 .html(function(d, i) {
-                    return '<strong>Male</strong><br>Age: ' + d.key + 
-                    '<br><span style="color:red">' + "Population: " + formatNumber(d.value.male) + '</span>' +
-                    '<br><span style="color:red">' + "% Total: " + formatPercent(d.value.male / totalPopulation) + '</span>'
-                    ;
-                }); 
-                
+                    return '<strong>Male</strong><br>Age: ' + d.key +
+                        '<br><span style="color:red">' + "Population: " + formatNumber(d.value.male) + '</span>' +
+                        '<br><span style="color:red">' + "% Total: " + formatPercent(d.value.male / totalPopulation) + '</span>';
+                });
+
             svgDemo.call(tipDemoF);
-            svgDemo.call(tipDemoM);            
-            
+            svgDemo.call(tipDemoM);
+
             // Add a 'select', drop down box
             var selPracticeDropDown = document.getElementById('selPractice');
+            var selPracticeCompareDropDown = document.getElementById('selPracticeCompare');
 
-              
-           // Load the initial data and then variations on this for subsequent filtering
-           var dataLevel_00, // initially loaded data
-            dataLevel_01, // by period
-            dataLevel_02, // by practice by period
-            dataLevel_03 = [], // by age/ sex, latest period (init chart)
-            dataLevel_04, // by age/ sex, by practice by period
-            data_DemoInit; // used to initialise demographic data
-            
-           var uniquePractices,
-            selectedPractice,
-            selectedDate,
-            totalPopulation,
-            populationOver65; 
+            // Load the initial data and then variations on this for subsequent filtering
+            var dataLevel_00, // initially loaded data
+                dataLevel_01, // by period
+                dataLevel_02, // by practice by period
+                dataLevel_03 = [], // by age/ sex, latest period (init chart)
+                dataLevel_04, // by age/ sex, by practice by period
+                data_DemoInit; // used to initialise demographic data
 
-            
+            var uniquePractices,
+                selectedPractice,
+                selectedPracticeCompare = 'None',
+                selectedDate,
+                totalPopulation,
+                populationOver65,
+                maxValue = 0;
+
             d3.csv('data/Practice_Populations.csv', row, function(data) {
-                           
+
                 dataLevel_00 = data; // key fields from data, formatted by row() function
                 // console.log(dataLevel_00)
-                
+
                 // List of practices for use in drop down ------------------------
                 uniquePractices = d3.nest()
-                    .key(function(d) { return d.Practice }).sortKeys(d3.ascending)
-                    .rollup(function(v) { return v.length; })
-                    .entries(dataLevel_00);                
+                    .key(function(d) {
+                        return d.Practice
+                    }).sortKeys(d3.ascending)
+                    .rollup(function(v) {
+                        return v.length;
+                    })
+                    .entries(dataLevel_00);
                 // console.log(uniquePractices)
 
                 // drop down button
-                var options = d3.select('#selPractice')
+                var options = d3.selectAll('.selPractice')
                     .selectAll('option')
                     .data(uniquePractices)
                     .enter()
                     .append('option')
-                    .attr('value', function(d) {return d.key;})
-                    .text(function(d) { return d.key; });
+                    .attr('value', function(d) {
+                        return d.key;
+                    })
+                    .text(function(d) {
+                        return d.key;
+                    });
 
-                    
                 // Add a default 'Select Total' option to drop down box
                 selPracticeDropDown.options[selPracticeDropDown.options.length] = new Option('Total CCG', 'Default')
-                // Show this 'Total' option as the default by selecting
-                selPracticeDropDown.selectedIndex = [selPracticeDropDown.options.length] - 1                                
+                    // Show this 'Total' option as the default by selecting
+                selPracticeDropDown.selectedIndex = [selPracticeDropDown.options.length] - 1
 
-                
+                // Add a default 'Select None' option to the compare drop down box
+                selPracticeCompareDropDown.options[selPracticeCompareDropDown.options.length] = new Option('Total CCG', 'Default')
+                selPracticeCompareDropDown.options[selPracticeCompareDropDown.options.length] = new Option('None', 'None')
+                selPracticeCompareDropDown.selectedIndex = [selPracticeCompareDropDown.options.length] - 1
+
                 d3.select('#selPractice')
-                    .on('change', function () {
-                        
+                    .on('change', function() {
+
                         var selection = selPracticeDropDown.options[selPracticeDropDown.selectedIndex].value;
                         selectedPractice = selection
-                        // console.log(selectedPractice)
-                            
+                            // console.log(selectedPractice)
+
                         if (selectedPractice === 'Default') {
                             initChtPeriod()
-                            } else {
+                        } else {
                             chartPopulationTrend(selectedPractice)
-                            };
-                            
+                        };
+
                         chartDemographics(selectedPractice, selectedDate)
+                        chartDemographicsCompare(selectedPracticeCompare, selectedDate)
 
                     })
-                // ---------------------------------------------------------------
+                    // ---------------------------------------------------------------
 
+                d3.select('#selPracticeCompare')
+                    .on('change', function() {
+
+                        var selectionCompare = selPracticeCompareDropDown.options[selPracticeCompareDropDown.selectedIndex].value;
+                        selectedPracticeCompare = selectionCompare
+                            // console.log(selectedPracticeCompare)                            
+
+                        chartDemographicsCompare(selectedPracticeCompare, selectedDate)
+
+                    })
 
                 // List of Age Bands ------------------------
                 uniqueAgeBands = d3.nest()
-                    .key(function(d) { return d.Age_Band }).sortKeys(d3.ascending)
-                    .rollup(function(v) { return v.length; })
-                    .entries(dataLevel_00);                
+                    .key(function(d) {
+                        return d.Age_Band
+                    }).sortKeys(d3.ascending)
+                    .rollup(function(v) {
+                        return v.length;
+                    })
+                    .entries(dataLevel_00);
                 // console.log(uniqueAgeBands)
 
-                
                 // for default date, use the most recent period
                 selectedDate = d3.max(dataLevel_00, function(d) {
-                    return d.Period ;
+                        return d.Period;
                     })
-                //console.log(selectedDate)                
-                
+                    // console.log(selectedDate)                
 
                 // Total by Period for initial Trend Chart
-                dataLevel_01 = d3.nest()                   
-                    .key(function(d) { return d.Period; })
-                    .rollup(function(v) {return {
-                         total: d3.sum(v, function(d) { return d.Total_Pop; })
-                    }; })
+                dataLevel_01 = d3.nest()
+                    .key(function(d) {
+                        return d.Period;
+                    })
+                    .rollup(function(v) {
+                        return {
+                            total: d3.sum(v, function(d) {
+                                return d.Total_Pop;
+                            })
+                        };
+                    })
                     .entries(dataLevel_00);
                 // console.log(dataLevel_01)
 
-                
                 // Practices by Period - Trend Chart Filtered
-                dataLevel_02 = d3.nest()                   
-                    .key(function(d) { return d.Practice; })
-                    .key(function(d) { return d.Period; })
-                    .rollup(function(v) {return {
-                         total: d3.sum(v, function(d) { return d.Total_Pop; })
-                    }; })
-                    .entries(dataLevel_00);                            
+                dataLevel_02 = d3.nest()
+                    .key(function(d) {
+                        return d.Practice;
+                    })
+                    .key(function(d) {
+                        return d.Period;
+                    })
+                    .rollup(function(v) {
+                        return {
+                            total: d3.sum(v, function(d) {
+                                return d.Total_Pop;
+                            })
+                        };
+                    })
+                    .entries(dataLevel_00);
                 // console.log(dataLevel_02)
 
-                
                 //-------------------------------------------------------
                 // Practices by Period and Age Band - Trend Chart Filtered
-                data_DemoInit = d3.nest()                   
-                    .key(function(d) { return d.Period; })
-                    .key(function(d) { return d.Age_Band; })                    
-                    .rollup(function(v) {return {
-                         total: d3.sum(v, function(d) { return d.Total_Pop; }),
-                         male: d3.sum(v, function(d) { return d.Male_Pop; }),
-                         female: d3.sum(v, function(d) { return d.Female_Pop; })                         
-                    }; })
-                    .entries(dataLevel_00);                            
-                
-                data_DemoInit.forEach(function (d) {
-                    d.Period = new Date(d.key);     
+                data_DemoInit = d3.nest()
+                    .key(function(d) {
+                        return d.Period;
+                    })
+                    .key(function(d) {
+                        return d.Age_Band;
+                    })
+                    .rollup(function(v) {
+                        return {
+                            total: d3.sum(v, function(d) {
+                                return d.Total_Pop;
+                            }),
+                            male: d3.sum(v, function(d) {
+                                return d.Male_Pop;
+                            }),
+                            female: d3.sum(v, function(d) {
+                                return d.Female_Pop;
+                            })
+                        };
+                    })
+                    .entries(dataLevel_00);
+
+                data_DemoInit.forEach(function(d) {
+                    d.Period = new Date(d.key);
                     // d.Population = d.values;
-                    
+
                 });
-                 // console.log(data_DemoInit)
-                 // console.log(selectedDate)
-                
-                
+                // console.log(data_DemoInit)
+                // console.log(selectedDate)
+
                 data_DemoInit.forEach(function(d) {
                     if (d.Period.getTime() === selectedDate.getTime()) // comparing dates
-                         Array.prototype.push.apply(dataLevel_03, d.values)
-                        });                                
+                        Array.prototype.push.apply(dataLevel_03, d.values)
+                });
                 // console.log(dataLevel_03);
                 // ---------------------------------------------------------
-                             
-                
-                
+
                 // Practices by Period by Age/Sex - Demographic Chart Filtered
-                dataLevel_04 = d3.nest()                   
-                    .key(function(d) { return d.Practice; })
-                    .key(function(d) { return d.Period; })
-                    .key(function(d) { return d.Age_Band; })
-                    .rollup(function(v) {return {
-                         total: d3.sum(v, function(d) { return d.Total_Pop; }),
-                         male: d3.sum(v, function(d) { return d.Male_Pop; }),
-                         female: d3.sum(v, function(d) { return d.Female_Pop; })
-                    }; })
-                    .entries(dataLevel_00);                            
+                dataLevel_04 = d3.nest()
+                    .key(function(d) {
+                        return d.Practice;
+                    })
+                    .key(function(d) {
+                        return d.Period;
+                    })
+                    .key(function(d) {
+                        return d.Age_Band;
+                    })
+                    .rollup(function(v) {
+                        return {
+                            total: d3.sum(v, function(d) {
+                                return d.Total_Pop;
+                            }),
+                            male: d3.sum(v, function(d) {
+                                return d.Male_Pop;
+                            }),
+                            female: d3.sum(v, function(d) {
+                                return d.Female_Pop;
+                            })
+                        };
+                    })
+                    .entries(dataLevel_00);
                 // console.log(dataLevel_04)                
 
-                    
-             initChtPeriod();
-             //initChtDemo();
-            chartDemographics(selectedPractice, selectedDate);
-             
-            })                
+                initChtPeriod();
+                //initChtDemo();
+                chartDemographics(selectedPractice, selectedDate);
 
+            })
 
             function initChtPeriod() {
-            svgTrend.selectAll('*').remove();
-            
-               var chtDataTrend = [];
+                svgTrend.selectAll('*').remove();
+
+                var chtDataTrend = [];
                 chtDataTrend = dataLevel_01
 
                 // format data
                 chtDataTrend.forEach(function(d) {
                     d.Period = new Date(d.key);
                     d.Population = +d.value.total;
-                    });                
+                });
                 // console.log(chtDataTrend)
-            
-            
+
                 xPeriod.domain(d3.extent(chtDataTrend, function(d) {
                         return d.Period;
-                        })).nice()
-                //yPeriod.domain([0, d3.max(chtDataTrend, function(d) { return d.Population; })])
+                    })).nice()
+                    //yPeriod.domain([0, d3.max(chtDataTrend, function(d) { return d.Population; })])
                 yPeriod.domain(d3.extent(chtDataTrend, function(d) {
-                        return d.Population;
-                        })).nice()                        
-                               
-                
+                    return d.Population;
+                })).nice()
+
                 svgTrend.append('g')
                     .attr('class', 'x axis')
                     .attr('transform', 'translate(0,' + height + ')')
@@ -580,7 +645,6 @@
                     .style('text-anchor', 'end')
                     .style('font-weight', 'bold')
                     .text('Period')
-                                       
 
                 svgTrend.append('g')
                     .attr('class', 'y axis')
@@ -591,59 +655,60 @@
                     .attr('y', -40)
                     .style('text-anchor', 'end')
                     .style('font-weight', 'bold')
-                    .text('Population')                               
-                    
-                    
+                    .text('Population')
+
                 // Add the valueline path.
                 svgTrend.append('path')
-                    .datum(chtDataTrend)                
+                    .datum(chtDataTrend)
                     .attr('class', 'line')
                     .attr('d', line);
-            
 
                 // Add the circles
-            circle                
-                .data(chtDataTrend)			
-                .enter()
-                .append('circle')
+                circle
+                    .data(chtDataTrend)
+                    .enter()
+                    .append('circle')
                     .attr('class', 'marker')
-                    .attr('r', 5)		
-                    .attr('cx', function(d) { return xPeriod(d.Period); })		 
-                    .attr('cy', function(d) { return yPeriod(d.Population); })
+                    .attr('r', 5)
+                    .attr('cx', function(d) {
+                        return xPeriod(d.Period);
+                    })
+                    .attr('cy', function(d) {
+                        return yPeriod(d.Population);
+                    })
                     .on('click', function(d) {
                         selectedDate = d.Period;
-                        chartDemographics(undefined, d.Period);                        
-                        })                    
-                    .on('mouseenter',tipTrend.show)
-                    .on('mouseover', 
+                        chartDemographics(undefined, d.Period);
+                        chartDemographicsCompare(undefined, d.Period);
+                    })
+                    .on('mouseenter', tipTrend.show)
+                    .on('mouseover',
                         function(d) {
                             d3.select(this)
-                                .attr('class', 'marker_highlight')                 	
-                            })					
+                                .attr('class', 'marker_highlight')
+                        })
                     .on('mouseout',
                         function(d) {
                             d3.select(this)
-                                .attr('class', 'marker') 
+                                .attr('class', 'marker')
                         })
-                    .on('mouseleave',tipTrend.hide);
-                        
+                    .on('mouseleave', tipTrend.hide);
+
             }
 
-            
-            
             // default chart for total population
             function chartPopulationTrend(practiceCode) {
-                
-           var chtDataTrend = [];
-            
-            if (!practiceCode) { // no practice selected, default
-                chtDataTrend = dataLevel_01
+
+                var chtDataTrend = [];
+
+                if (!practiceCode) { // no practice selected, default
+                    chtDataTrend = dataLevel_01
                 } else {
-                // chtDataTrend = dataLevel_02.filter(function (d) { return d.key === practiceCode })
-                // http://stackoverflow.com/questions/38179672/d3-js-extract-array-in-object-within-array
-                dataLevel_02.forEach(function(d) {
-                if(d.key === practiceCode)
-                     Array.prototype.push.apply(chtDataTrend, d.values);
+                    // chtDataTrend = dataLevel_02.filter(function (d) { return d.key === practiceCode })
+                    // http://stackoverflow.com/questions/38179672/d3-js-extract-array-in-object-within-array
+                    dataLevel_02.forEach(function(d) {
+                        if (d.key === practiceCode)
+                            Array.prototype.push.apply(chtDataTrend, d.values);
                     });
                 };
 
@@ -651,19 +716,17 @@
                 chtDataTrend.forEach(function(d) {
                     d.Period = new Date(d.key);
                     d.Population = +d.value.total;
-                    });                
+                });
                 // console.log(chtDataTrend)
-            
-            
+
                 xPeriod.domain(d3.extent(chtDataTrend, function(d) {
                         return d.Period;
-                        })).nice()
-                //yPeriod.domain([0, d3.max(chtDataTrend, function(d) { return d.Population; })])
+                    })).nice()
+                    //yPeriod.domain([0, d3.max(chtDataTrend, function(d) { return d.Population; })])
                 yPeriod.domain(d3.extent(chtDataTrend, function(d) {
-                        return d.Population;
-                        })).nice()                        
+                    return d.Population;
+                })).nice()
 
-                        
                 var svgTrend = d3.select('#cht_PopTrend').transition();
 
                 svgTrend.select('.x.axis')
@@ -672,395 +735,400 @@
 
                 svgTrend.select('.y.axis')
                     .duration(0)
-                    .call(yAxisPeriod);       
+                    .call(yAxisPeriod);
 
                 svgTrend.select('.line')
-                  .duration(0)
-                  //.datum(chtDataTrend)
-                  .attr('d', line(chtDataTrend));
+                    .duration(0)
+                    //.datum(chtDataTrend)
+                    .attr('d', line(chtDataTrend));
 
                 // remove old points here?
                 svgTrend.selectAll('circle')
                     .duration(10)
                     .remove();
-                         
 
-            circle
-                .data(chtDataTrend)		
-                .enter()
-                .append('circle')
+                circle
+                    .data(chtDataTrend)
+                    .enter()
+                    .append('circle')
                     .attr('class', 'marker')
-                    .attr('r', 5)		
-                    .attr('cx', function(d) { return xPeriod(d.Period); })		 
-                    .attr('cy', function(d) { return yPeriod(d.Population); })
+                    .attr('r', 5)
+                    .attr('cx', function(d) {
+                        return xPeriod(d.Period);
+                    })
+                    .attr('cy', function(d) {
+                        return yPeriod(d.Population);
+                    })
                     .on('click', function(d) {
                         selectedDate = d.Period;
-                        chartDemographics(practiceCode, d.Period);                        
-                        })
-                    .on('mouseenter',tipTrend.show)
-                    .on('mouseover', 
+                        chartDemographics(practiceCode, d.Period);
+                        chartDemographicsCompare(selectedPracticeCompare, d.Period);
+                    })
+                    .on('mouseenter', tipTrend.show)
+                    .on('mouseover',
                         function(d) {
                             d3.select(this)
-                                .attr('class', 'marker_highlight')                 	
-                            })					
+                                .attr('class', 'marker_highlight')
+                        })
                     .on('mouseout',
                         function(d) {
                             d3.select(this)
-                                .attr('class', 'marker') 
+                                .attr('class', 'marker')
                         })
-                    .on('mouseleave',tipTrend.hide);
+                    .on('mouseleave', tipTrend.hide);
             }
 
+            // ################  Demographics Chart for selected Practice and Period  ##########################
+            function chartDemographics(practiceCode, selectedDate) {
+                svgDemo.selectAll('*').remove();
 
+                var DateDemoInit = [],
+                    chtDataDemo = [];
 
-// ################  Initial Demographics Chart, All Practices - latest period  ##########################
-/*
-    function initChtDemo() {
-    svgDemo.selectAll('*').remove();
-        
-       var chtDataDemo = [];
-        chtDataDemo = dataLevel_03
-        // console.log(chtDataDemo)
-
-        // format data
-        chtDataDemo.forEach(function(d) {
-            d.Period = new Date(d.key);
-            d.male = +d.value.male;
-            d.female = +d.value.female;
-            d.Population = +d.value.total;
-            });                
-        // console.log(chtDataDemo)
-
-
-        // Make groups for each side of chart
-        // scale(-1, 1) is used to reverse the left side so the bars grow left instead of right
-        var leftBarGroup = svgDemo.append('g')
-          .attr('transform', translation(pointA, 0) + 'scale(-1, 1)');
-        var rightBarGroup = svgDemo.append('g')
-          .attr('transform', translation(pointB, 0));
-        
-        // Get the total population size and create a function for returning the percentage
-        totalPopulation = d3.sum(chtDataDemo, function(d) { return d.Population; }),
-            percentage = function(d) { return d / totalPopulation; };
-            // console.log(totalPopulation)
-
-        
-        populationOver65 = 0;
-        
-        chtDataDemo.forEach(function(d) {
-            if (d.key.substring(0, d.key.indexOf("-")) > 64) {
-                 populationOver65 = populationOver65 + d.Population
+                if (selectedPractice === 'Default') {
+                    practiceCode = undefined
                 }
+
+                if (!practiceCode) {
+                    practiceCode = undefined
+                }
+
+                // console.log(practiceCode) 
+
+                if (!selectedDate) {
+                    selectedDate = new Date(selectedDate)
+                }
+                // console.log(selectedDate)               
+
+                if (!practiceCode) { // no practice selected, undefined
+                    data_DemoInit.forEach(function(d) {
+                        if (d.Period.getTime() === selectedDate.getTime()) // comparing dates
+                            Array.prototype.push.apply(chtDataDemo, d.values)
+                    });
+                } else {
+                    dataLevel_04.forEach(function(d) {
+
+                        if (d.key === practiceCode)
+                            Array.prototype.push.apply(DateDemoInit, d.values);
+                    });
+
+                    DateDemoInit.forEach(function(d) {
+                        d.Period = new Date(d.key);
+                    });
+
+                    DateDemoInit.forEach(function(d) {
+                        if (d.Period.getTime() === selectedDate.getTime())
+                            Array.prototype.push.apply(chtDataDemo, d.values);
+                    });
+                };
+
+                // console.log(DateDemoInit)
+                // console.log(chtDataDemo)
+
+                // format data
+                chtDataDemo.forEach(function(d) {
+                    d.Period = new Date(d.key);
+                    d.male = +d.value.male;
+                    d.female = +d.value.female;
+                    d.Population = +d.value.total;
                 });
-            // console.log('Over65s: ' + populationOver65)
-            // console.log('% 65s: ' + formatPercent(populationOver65 / totalPopulation))
+                // console.log(chtDataDemo)
 
-            d3.select('#circleOver65')
-                .html(formatPercent(populationOver65 / totalPopulation))
-            
-        // find the maximum data value on either side
-        // since this will be shared by both of the x-axes
-        var maxValue = Math.max(
-          d3.max(chtDataDemo, function(d) { return percentage(d.male); }),
-          d3.max(chtDataDemo, function(d) { return percentage(d.female); })
-        );
-        // console.log(maxValue)
+                // Make groups for each side of chart
+                // scale(-1, 1) is used to reverse the left side so the bars grow left instead of right
+                var leftBarGroup = svgDemo.append('g')
+                    .attr('transform', translation(pointA, 0) + 'scale(-1, 1)');
+                var rightBarGroup = svgDemo.append('g')
+                    .attr('transform', translation(pointB, 0));
 
-        xScale.domain([0, maxValue])
-        xScaleLeft.domain([0, maxValue])
-        xScaleRight.domain([0, maxValue])
-        // might need to hard code for order here, default axis array ['0-4', '5-9'...]
-        yScale.domain(chtDataDemo.map(function(d) { return d.key; }))
+                // Get the total population size and create a function for returning the percentage
+                totalPopulation = d3.sum(chtDataDemo, function(d) {
+                        return d.Population;
+                    }),
+                    percentage = function(d) {
+                        return d / totalPopulation;
+                    };
+                // console.log(totalPopulation)
 
+                populationOver65 = 0;
 
-        var xAxisLeft = d3.axisBottom(xScale.copy().range([pointA, 0]))
-          // Reverse the x-axis scale on the left side by reversing the range
-          .tickFormat(formatPercent);        
-        
-        
-        
-        // Draw axes
-        svgDemo.append('g')
-          .attr('class', 'axis y left')
-          .attr('transform', translation(pointA, 0))
-          .call(yAxisLeft)
-          .selectAll('text')
-          .style('text-anchor', 'middle');
+                chtDataDemo.forEach(function(d) {
+                    if (d.key.substring(0, d.key.indexOf("-")) > 64) {
+                        populationOver65 = populationOver65 + d.Population
+                    }
+                });
+                // console.log('Over65s: ' + populationOver65)
+                // console.log('% 65s: ' + formatPercent(populationOver65 / totalPopulation))
 
-        svgDemo.append('g')
-          .attr('class', 'axis y right')
-          .attr('transform', translation(pointB, 0))
-          .call(yAxisRight);
+                d3.select('#circleOver65')
+                    .html(formatPercent(populationOver65 / totalPopulation))
 
-        svgDemo.append('g')
-          .attr('class', 'axis x left')
-          .attr('transform', translation(0, height - 5))
-          .call(xAxisLeft);
+                // find the maximum data value on either side
+                // since this will be shared by both of the x-axes
+                maxValue = Math.max(
+                    d3.max(chtDataDemo, function(d) {
+                        return percentage(d.male);
+                    }),
+                    d3.max(chtDataDemo, function(d) {
+                        return percentage(d.female);
+                    })
+                );
+                // console.log(maxValue)
 
-        svgDemo.append('g')
-          .attr('class', 'axis x right')
-          .attr('transform', translation(pointB, height - 5))
-          .call(xAxisRight);
+                xScale.domain([0, maxValue])
+                xScaleLeft.domain([0, maxValue])
+                xScaleRight.domain([0, maxValue])
+                    // might need to hard code for order here, default axis array ['0-4', '5-9'...]
+                yScale.domain(chtDataDemo.map(function(d) {
+                    return d.key;
+                }))
 
+                var xAxisLeft = d3.axisBottom(xScale.copy().range([pointA, 0]))
+                    // Reverse the x-axis scale on the left side by reversing the range
+                    .tickFormat(formatPercent);
 
-          
-        // Draw bars
-        leftBarGroup.selectAll('.bar.left')
-          .data(chtDataDemo)
-          .enter().append('rect')
-            .attr('class', 'bar left')
-            .attr('x', 0)
-            .attr('y', function(d) { return yScale(d.key); })
-            .attr('width', function(d) { return xScale(percentage(d.male)); })
-            .attr('height', yScale.bandwidth())
-            .on('mouseenter', tipDemoM.show)
-            .on('mouseover',
-                function(d) {
-                    d3.select(this)
-                        .attr('class', 'bar hover')                 	
-                    })					
-            .on('mouseout',
-                function(d) {
-                    d3.select(this)
-                        .attr('class', 'bar left') 
-                })
-            .on('mouseleave', tipDemoM.hide)  ;         
-            
-            
+                // Draw axes
+                svgDemo.append('g')
+                    .attr('class', 'axis y left')
+                    .attr('transform', translation(pointA, 0))
+                    .call(yAxisLeft)
+                    .selectAll('text')
+                    .style('text-anchor', 'middle');
 
-        rightBarGroup.selectAll('.bar.right')
-          .data(chtDataDemo)
-          .enter().append('rect')
-            .attr('class', 'bar right')
-            .attr('x', 0)
-            .attr('y', function(d) { return yScale(d.key); })
-            .attr('width', function(d) { return xScale(percentage(d.female)); })
-            .attr('height', yScale.bandwidth())
-            .on('mouseenter', tipDemoF.show)
-            .on('mouseover',
-                function(d) {
-                    d3.select(this)
-                        .attr('class', 'bar hover')                 	
-                    })					
-            .on('mouseout',
-                function(d) {
-                    d3.select(this)
-                        .attr('class', 'bar right') 
-                })
-            .on('mouseleave', tipDemoF.hide);
+                svgDemo.append('g')
+                    .attr('class', 'axis y right')
+                    .attr('transform', translation(pointB, 0))
+                    .call(yAxisRight);
+
+                svgDemo.append('g')
+                    .attr('class', 'axis x left')
+                    .attr('transform', translation(0, height - 5))
+                    .call(xAxisLeft);
+
+                svgDemo.append('g')
+                    .attr('class', 'axis x right')
+                    .attr('transform', translation(pointB, height - 5))
+                    .call(xAxisRight);
+
+                // Draw bars
+                leftBarGroup.selectAll('.bar.left')
+                    .data(chtDataDemo)
+                    .enter().append('rect')
+                    .attr('class', 'bar left')
+                    .attr('x', 0)
+                    .attr('y', function(d) {
+                        return yScale(d.key);
+                    })
+                    .attr('width', function(d) {
+                        return xScale(percentage(d.male));
+                    })
+                    .attr('height', yScale.bandwidth())
+                    .on('mouseenter', tipDemoM.show)
+                    .on('mouseover',
+                        function(d) {
+                            d3.select(this)
+                                .attr('class', 'bar hover')
+                        })
+                    .on('mouseout',
+                        function(d) {
+                            d3.select(this)
+                                .attr('class', 'bar left')
+                        })
+                    .on('mouseleave', tipDemoM.hide);
+
+                rightBarGroup.selectAll('.bar.right')
+                    .data(chtDataDemo)
+                    .enter().append('rect')
+                    .attr('class', 'bar right')
+                    .attr('x', 0)
+                    .attr('y', function(d) {
+                        return yScale(d.key);
+                    })
+                    .attr('width', function(d) {
+                        return xScale(percentage(d.female));
+                    })
+                    .attr('height', yScale.bandwidth())
+                    .on('mouseenter', tipDemoF.show)
+                    .on('mouseover',
+                        function(d) {
+                            d3.select(this)
+                                .attr('class', 'bar hover')
+                        })
+                    .on('mouseout',
+                        function(d) {
+                            d3.select(this)
+                                .attr('class', 'bar right')
+                        })
+                    .on('mouseleave', tipDemoF.hide);
 
             }
-*/            
-                        
 
+            // ################  Demographics Chart Compare for selected Practice and Period  ##########################
+            function chartDemographicsCompare(practiceCode, selectedDate) {
+                svgDemo.selectAll('.barComp').remove();
 
-// ################  Demographics Chart for selected Practice and Period  ##########################
-    function chartDemographics(practiceCode, selectedDate) {
-    svgDemo.selectAll('*').remove();
+                var DateDemoInit = [],
+                    chtDataDemo = [];
 
-   var DateDemoInit = [],
-        chtDataDemo = [];
-        
-    if (selectedPractice === 'Default') {
-         practiceCode = undefined }
-               
-    if (!practiceCode) {
-        practiceCode = undefined }
-  
-        console.log(practiceCode) 
-        
-    if (!selectedDate) {
-        selectedDate = new Date(selectedDate)
-        }
-        console.log(selectedDate)               
+                // if (selectedPractice === selectedPracticeCompare) {
+                //    return; }
 
-
-    if (!practiceCode) { // no practice selected, undefined
-        data_DemoInit.forEach(function(d) {
-            if (d.Period.getTime() === selectedDate.getTime()) // comparing dates
-                 Array.prototype.push.apply(chtDataDemo, d.values)
-                });            
-        } else {
-            dataLevel_04.forEach(function(d) {
-            
-            if (d.key === practiceCode)
-                 Array.prototype.push.apply(DateDemoInit, d.values);
-                });
-                
-           DateDemoInit.forEach(function(d) {
-            d.Period = new Date(d.key);
-                }); 
-
-           DateDemoInit.forEach(function(d) {
-            if (d.Period.getTime() === selectedDate.getTime())
-                 Array.prototype.push.apply(chtDataDemo, d.values);            
-            });
-        };
-
-        // console.log(DateDemoInit)
-        // console.log(chtDataDemo)
-
-        // format data
-        chtDataDemo.forEach(function(d) {
-            d.Period = new Date(d.key);
-            d.male = +d.value.male;
-            d.female = +d.value.female;
-            d.Population = +d.value.total;
-            });                
-        // console.log(chtDataDemo)
-
-
-        // Make groups for each side of chart
-        // scale(-1, 1) is used to reverse the left side so the bars grow left instead of right
-        var leftBarGroup = svgDemo.append('g')
-          .attr('transform', translation(pointA, 0) + 'scale(-1, 1)');
-        var rightBarGroup = svgDemo.append('g')
-          .attr('transform', translation(pointB, 0));
-        
-        // Get the total population size and create a function for returning the percentage
-        totalPopulation = d3.sum(chtDataDemo, function(d) { return d.Population; }),
-            percentage = function(d) { return d / totalPopulation; };
-            // console.log(totalPopulation)
-
-
-        populationOver65 = 0;
-        
-        chtDataDemo.forEach(function(d) {
-            if (d.key.substring(0, d.key.indexOf("-")) > 64) {
-                 populationOver65 = populationOver65 + d.Population
+                if (selectedPracticeCompare === 'None') {
+                    return;
                 }
+
+                if (selectedPracticeCompare === 'Default') {
+                    practiceCode = undefined
+                }
+
+                if (!practiceCode) {
+                    practiceCode = undefined
+                }
+
+                // console.log(practiceCode) 
+
+                if (!selectedDate) {
+                    selectedDate = new Date(selectedDate)
+                }
+                // console.log(selectedDate)               
+
+                if (!practiceCode) { // no practice selected, undefined
+                    data_DemoInit.forEach(function(d) {
+                        if (d.Period.getTime() === selectedDate.getTime()) // comparing dates
+                            Array.prototype.push.apply(chtDataDemo, d.values)
+                    });
+                } else {
+                    dataLevel_04.forEach(function(d) {
+
+                        if (d.key === practiceCode)
+                            Array.prototype.push.apply(DateDemoInit, d.values);
+                    });
+
+                    DateDemoInit.forEach(function(d) {
+                        d.Period = new Date(d.key);
+                    });
+
+                    DateDemoInit.forEach(function(d) {
+                        if (d.Period.getTime() === selectedDate.getTime())
+                            Array.prototype.push.apply(chtDataDemo, d.values);
+                    });
+                };
+
+                // console.log(DateDemoInit)
+                // console.log(chtDataDemo)
+
+                // format data
+                chtDataDemo.forEach(function(d) {
+                    d.Period = new Date(d.key);
+                    d.male = +d.value.male;
+                    d.female = +d.value.female;
+                    d.Population = +d.value.total;
                 });
-            //console.log('Over65s: ' + populationOver65)
-            //console.log('% 65s: ' + formatPercent(populationOver65 / totalPopulation))
+                // console.log(chtDataDemo)
 
-            d3.select('#circleOver65')
-                .html(formatPercent(populationOver65 / totalPopulation))
+                // Make groups for each side of chart
+                // scale(-1, 1) is used to reverse the left side so the bars grow left instead of right
+                var leftBarGroup = svgDemo.append('g')
+                    .attr('transform', translation(pointA, 0) + 'scale(-1, 1)');
+                var rightBarGroup = svgDemo.append('g')
+                    .attr('transform', translation(pointB, 0));
 
-            
-        // find the maximum data value on either side
-        // since this will be shared by both of the x-axes
-        var maxValue = Math.max(
-          d3.max(chtDataDemo, function(d) { return percentage(d.male); }),
-          d3.max(chtDataDemo, function(d) { return percentage(d.female); })
-        );
-        // console.log(maxValue)
+                // Get the total population size and create a function for returning the percentage
+                var totalPopulationComp = d3.sum(chtDataDemo, function(d) {
+                        return d.Population;
+                    }),
+                    percentage = function(d) {
+                        return d / totalPopulationComp;
+                    };
+                // console.log(totalPopulationComp)
 
-        xScale.domain([0, maxValue])
-        xScaleLeft.domain([0, maxValue])
-        xScaleRight.domain([0, maxValue])
-        // might need to hard code for order here, default axis array ['0-4', '5-9'...]
-        yScale.domain(chtDataDemo.map(function(d) { return d.key; }))
+                populationOver65 = 0;
 
+                chtDataDemo.forEach(function(d) {
+                    if (d.key.substring(0, d.key.indexOf("-")) > 64) {
+                        populationOver65 = populationOver65 + d.Population
+                    }
+                });
+                // console.log('Over65s: ' + populationOver65)
+                // console.log('% 65s: ' + formatPercent(populationOver65 / totalPopulationComp))
 
-        var xAxisLeft = d3.axisBottom(xScale.copy().range([pointA, 0]))
-          // Reverse the x-axis scale on the left side by reversing the range
-          .tickFormat(formatPercent);        
-               
-        
-        // Draw axes
-        svgDemo.append('g')
-          .attr('class', 'axis y left')
-          .attr('transform', translation(pointA, 0))
-          .call(yAxisLeft)
-          .selectAll('text')
-          .style('text-anchor', 'middle');
+                d3.select('#circleOver65Compare')
+                    .html(formatPercent(populationOver65 / totalPopulationComp))
 
-        svgDemo.append('g')
-          .attr('class', 'axis y right')
-          .attr('transform', translation(pointB, 0))
-          .call(yAxisRight);
+                // find the maximum data value on either side
+                // since this will be shared by both of the x-axes
+                /*
+                maxValue = Math.max(
+                  d3.max(chtDataDemo, function(d) { return percentage(d.male); }),
+                  d3.max(chtDataDemo, function(d) { return percentage(d.female); })
+                );
+                */
+                // console.log(maxValue)
 
-        svgDemo.append('g')
-          .attr('class', 'axis x left')
-          .attr('transform', translation(0, height - 5))
-          .call(xAxisLeft);
+                xScale.domain([0, maxValue])
+                xScaleLeft.domain([0, maxValue])
+                xScaleRight.domain([0, maxValue])
+                    // might need to hard code for order here, default axis array ['0-4', '5-9'...]
+                yScale.domain(chtDataDemo.map(function(d) {
+                    return d.key;
+                }))
 
-        svgDemo.append('g')
-          .attr('class', 'axis x right')
-          .attr('transform', translation(pointB, height - 5))
-          .call(xAxisRight);
+                // Draw bars
+                leftBarGroup.selectAll('.barComp')
+                    .data(chtDataDemo)
+                    .enter().append('rect')
+                    .attr('class', 'barComp')
+                    .attr('x', 0)
+                    .attr('y', function(d) {
+                        return yScale(d.key);
+                    })
+                    .attr('width', function(d) {
+                        return xScale(percentage(d.male));
+                    })
+                    .attr('height', yScale.bandwidth());
 
+                rightBarGroup.selectAll('.barComp')
+                    .data(chtDataDemo)
+                    .enter().append('rect')
+                    .attr('class', 'barComp')
+                    .attr('x', 0)
+                    .attr('y', function(d) {
+                        return yScale(d.key);
+                    })
+                    .attr('width', function(d) {
+                        return xScale(percentage(d.female));
+                    })
+                    .attr('height', yScale.bandwidth());
+            }
 
-          
-        // Draw bars
-        leftBarGroup.selectAll('.bar.left')
-          .data(chtDataDemo)
-          .enter().append('rect')
-            .attr('class', 'bar left')
-            .attr('x', 0)
-            .attr('y', function(d) { return yScale(d.key); })
-            .attr('width', function(d) { return xScale(percentage(d.male)); })
-            .attr('height', yScale.bandwidth())
-            .on('mouseenter', tipDemoM.show)
-            .on('mouseover',
-                function(d) {
-                    d3.select(this)
-                        .attr('class', 'bar hover')                 	
-                    })					
-            .on('mouseout',
-                function(d) {
-                    d3.select(this)
-                        .attr('class', 'bar left') 
-                })
-            .on('mouseleave', tipDemoM.hide)  ;         
-            
-            
+            function row(d) {
+                return {
+                    Practice: d.Practice_Mapped,
+                    Locality: d.Locality,
+                    Age_Band: d.Age_Band,
+                    Period: parseDate(d.Period),
+                    Male_Pop: +d.Male,
+                    Female_Pop: +d.Female,
+                    Total_Pop: +d.Total
+                };
+            }
 
-        rightBarGroup.selectAll('.bar.right')
-          .data(chtDataDemo)
-          .enter().append('rect')
-            .attr('class', 'bar right')
-            .attr('x', 0)
-            .attr('y', function(d) { return yScale(d.key); })
-            .attr('width', function(d) { return xScale(percentage(d.female)); })
-            .attr('height', yScale.bandwidth())
-            .on('mouseenter', tipDemoF.show)
-            .on('mouseover',
-                function(d) {
-                    d3.select(this)
-                        .attr('class', 'bar hover')                 	
-                    })					
-            .on('mouseout',
-                function(d) {
-                    d3.select(this)
-                        .attr('class', 'bar right') 
-                })
-            .on('mouseleave', tipDemoF.hide);
+            function translation(x, y) {
+                return 'translate(' + x + ',' + y + ')';
+            }
 
-            } 
-
-
-
-
-                        
-
-        function row(d) {
-            return {
-                Practice: d.Practice_Mapped,
-                Locality: d.Locality,
-                Age_Band: d.Age_Band,
-                Period: parseDate(d.Period),
-                Male_Pop: +d.Male,
-                Female_Pop: +d.Female,
-                Total_Pop: +d.Total
+            // Function to create Title Case    
+            String.prototype.toProperCase = function() {
+                return this.replace(/\w\S*/g, function(txt) {
+                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                });
             };
-        }
-
-
-        function translation(x,y) {
-          return 'translate(' + x + ',' + y + ')';
-        }        
-
-    
-    // Function to create Title Case    
-    String.prototype.toProperCase = function () {
-        return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-    };    
-    
-    
-
         </script>
-        <br><br><br><br><br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
         <H5>
             Created using 
             <a href='http://d3js.org/'>d3.js</a>,
@@ -1071,7 +1139,7 @@
          </H5>
         <hr>
         <footer>
-        © <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>
+            © <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>
         </footer>
     </div>
     <!-- /container -->
