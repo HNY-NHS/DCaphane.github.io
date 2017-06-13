@@ -291,6 +291,7 @@
             var parseDate = d3.timeParse('%b-%y'), // import format
                 formatPeriod = d3.timeFormat('%b-%y'), // presentational format eg. Apr-16
                 formatNumber = d3.format(',d'),
+                formatPercentSht = d3.format('.1%'), // for x-axis to reduce overlap - still testing
                 formatPercent = d3.format(',.1%');
 
             // Trend by Period
@@ -371,7 +372,8 @@
                 .tickFormat('');
 
             var xAxisRight = d3.axisBottom(xScale)
-                .tickFormat(formatPercent);
+                .tickFormat(formatPercentSht);
+
 
             // Tooltips
             var tipTrend = d3.tip()
@@ -893,7 +895,7 @@
 
                 var xAxisLeft = d3.axisBottom(xScale.copy().range([pointA, 0]))
                     // Reverse the x-axis scale on the left side by reversing the range
-                    .tickFormat(formatPercent);
+                    .tickFormat(formatPercentSht);
 
                 // Draw axes
                 svgDemo.append('g')
